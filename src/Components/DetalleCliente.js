@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ClienteService from '../Services/ClienteService'; // Asegúrate de tener este servicio configurado correctamente
+import ClienteService from '../Services/ClienteService';
 import { Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Card, CardContent, CardMedia, Grid, Divider, Snackbar, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -12,6 +12,7 @@ const DetalleCliente = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [cliente, setCliente] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   useEffect(() => {
@@ -20,7 +21,6 @@ const DetalleCliente = () => {
         const clienteResponse = await ClienteService.getClienteById(id);
         setCliente(clienteResponse.data);
       } catch (error) {
-        console.error('Error fetching data:', error);
         setSnackbar({ open: true, message: 'Error al obtener los datos del cliente', severity: 'error' });
       }
     };
@@ -29,16 +29,14 @@ const DetalleCliente = () => {
   }, [id]);
 
   const handleDeleteCliente = async () => {
-    const confirmDelete = window.confirm('¿Estás seguro de que deseas eliminar este cliente?');
-    if (confirmDelete) {
-      try {
-        await ClienteService.deleteCliente(id);
-        navigate('/clientes');
-      } catch (error) {
-        console.error('Error al eliminar el cliente:', error);
-        setSnackbar({ open: true, message: 'Error al eliminar el cliente', severity: 'error' });
-      }
+    try {
+      await ClienteService.deleteCliente(id);
+      setSnackbar({ open: true, message: 'Cliente eliminado correctamente', severity: 'success' });
+      navigate('/clientes');
+    } catch (error) {
+      setSnackbar({ open: true, message: 'Error al eliminar el cliente', severity: 'error' });
     }
+    setOpenDialog(false);
   };
 
   const formatDate = (date) => {
@@ -55,7 +53,7 @@ const DetalleCliente = () => {
   const imageUrl = `http://localhost:5011/Images/${cliente.foto}`;
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: 3, marginLeft: 6 }}>
       <Typography variant="h4" gutterBottom>
         Detalle del Cliente
       </Typography>
@@ -89,7 +87,7 @@ const DetalleCliente = () => {
           <Button
             variant="outlined"
             color="primary"
-            onClick={() => navigate(`/cliente/editar/${id}`)}
+            onClick={() => navigate(`/clientes/editar/${id}`)}
             startIcon={<EditIcon />}
           >
             Editar Cliente
@@ -99,7 +97,7 @@ const DetalleCliente = () => {
           <Button
             variant="outlined"
             color="error"
-            onClick={handleDeleteCliente}
+            onClick={() => setOpenDialog(true)}
             startIcon={<DeleteIcon />}
           >
             Eliminar Cliente
@@ -107,11 +105,24 @@ const DetalleCliente = () => {
         </Grid>
       </Grid>
 
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        <DialogTitle>Confirmar Eliminación</DialogTitle>
+        <DialogContent>
+          <Typography>¿Estás seguro de que deseas eliminar este cliente?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
+          <Button onClick={handleDeleteCliente} color="error">Eliminar</Button>
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        message={snackbar.message}
         action={
           <IconButton color="inherit" onClick={handleSnackbarClose}>
             <CloseIcon />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ClienteService from '../Services/ClienteService';
-import { Box, Typography, Button, FormControl, TextField, FormGroup, FormControlLabel, Checkbox, Alert, AlertTitle } from '@mui/material';
+import { Box, Typography, Button, FormControl, TextField, FormGroup, Alert, AlertTitle } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 
 const FormularioCliente = () => {
@@ -56,34 +56,27 @@ const FormularioCliente = () => {
     e.preventDefault();
   
     if (!cliente.nombre || !cliente.telefono || !cliente.nacimiento) {
-      alert('Por favor, completa todos los campos obligatorios.');
-      return;
+        alert('Por favor, completa todos los campos obligatorios.');
+        return;
     }
   
-    const formData = new FormData();
-formData.append('nombre', cliente.nombre);
-formData.append('telefono', cliente.telefono);
-formData.append('nacimiento', cliente.nacimiento);
-if (cliente.foto) {
-  formData.append('foto', cliente.foto);
-}
-
-  
     try {
-      if (id) {
-        await ClienteService.updateCliente(id, formData);
-        setExitocreacion('Cliente actualizado exitosamente');
-      } else {
-        await ClienteService.createCliente(formData);
-        setExitocreacion('Cliente creado exitosamente');
-      }
+        if (id) {
+            await ClienteService.updateCliente(id, cliente, cliente.foto);
+            setExitocreacion('Cliente actualizado exitosamente');
+        } else {
+            await ClienteService.createCliente(cliente, cliente.foto);
+            setExitocreacion('Cliente creado exitosamente');
+        }
   
-      setTimeout(() => {
-        navigate('/clientes');
-      }, 1500);
+        setTimeout(() => {
+            setExitocreacion('');
+            navigate('/clientes');
+        }, 2000);
+  
     } catch (error) {
-      console.error('Error al guardar cliente:', error);
-      setMensajeError('Error al guardar cliente. Inténtalo de nuevo.');
+        console.error('Error al guardar cliente:', error);
+        setMensajeError('Hubo un error al guardar el cliente. Por favor, inténtalo de nuevo.');
     }
   };  
 

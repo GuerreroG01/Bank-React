@@ -24,6 +24,10 @@ const router = createBrowserRouter([
         element: <FormularioCliente />
       },
       {
+        path: '/clientes/editar/:id',
+        element: <FormularioCliente />
+      },
+      {
         path: '/clientes/detalle/:id',
         element: <DetalleCliente />
       }

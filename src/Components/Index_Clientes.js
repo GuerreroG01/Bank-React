@@ -4,7 +4,8 @@ import ClienteService from '../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton
+  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton,
+  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,6 +13,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CloseIcon from '@mui/icons-material/Close';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -54,14 +56,12 @@ function Row({ cliente, onEdit, onDelete, onViewDetails }) {
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
-              {/* Pendientes detalles adicionales */}
-              <Typography variant="h6" gutterBottom component="div">
+              <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto, sans-serif' }}>
                 Información Adicional
               </Typography>
               <Typography variant="body1">
                 Fecha de Nacimiento: {cliente.nacimiento ? format(new Date(cliente.nacimiento), 'dd MMM yyyy', { locale: es }) : 'N/A'}
               </Typography>
-              {/* Pendientes detalles adicionales */}
             </Box>
           </Collapse>
         </TableCell>
@@ -80,6 +80,11 @@ Row.propTypes = {
 const Index_Clientes = () => {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedClienteId, setSelectedClienteId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -104,23 +109,37 @@ const Index_Clientes = () => {
     navigate(`/cliente/editar/${id}`);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este cliente?')) {
-      try {
-        await ClienteService.deleteCliente(id);
-        fetchClientes();
-      } catch (error) {
-        console.error('Error deleting client:', error);
-      }
+  const handleDelete = (id) => {
+    setSelectedClienteId(id);
+    setOpenDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await ClienteService.deleteCliente(selectedClienteId);
+      fetchClientes();
+      setSnackbarMessage('Cliente eliminado exitosamente.');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error deleting client:', error);
+      setSnackbarMessage('Error al eliminar el cliente. Por favor, inténtelo de nuevo.');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
     }
+    setOpenDialog(false);
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/cliente/detalle/${id}`);
+    navigate(`/clientes/detalle/${id}`);
   };
 
   const handleCreateNew = () => {
     navigate('/clientes/formulario');
+  };
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
   };
 
   return (
@@ -173,6 +192,33 @@ const Index_Clientes = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+      >
+        <DialogTitle>Confirmar Eliminación</DialogTitle>
+        <DialogContent>
+          <Typography>¿Estás seguro de que deseas eliminar este cliente?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
+          <Button onClick={confirmDelete} color="error">Eliminar</Button>
+        </DialogActions>
+      </Dialog>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={2000}
+        onClose={handleSnackbarClose}
+        action={
+          <IconButton color="inherit" onClick={handleSnackbarClose}>
+            <CloseIcon />
+          </IconButton>
+        }
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

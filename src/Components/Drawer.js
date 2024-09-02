@@ -128,7 +128,7 @@ export default function MiniDrawer() {
           </IconButton>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <img src={BankLogo} alt="BancoNet Logo" style={{ width: 40, height: 40, marginRight: 10 }} />
-            <Typography variant="h6" noWrap component="div">
+            <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto' }}>
               BancoNet
             </Typography>
           </Box>
