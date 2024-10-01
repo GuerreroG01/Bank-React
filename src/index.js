@@ -5,9 +5,12 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import Index_Clientes from './Components/Index_Clientes';
+import Index_Tarjetas from './Components/Index_Tarjetas';
 import ErrorPage from './Pages/ErrorPage';
 import DetalleCliente from './Components/DetalleCliente';
 import FormularioCliente from './Components/FormularioCliente';
+import FormularioTarjeta from './Components/FormularioTarjeta';
+import DetalleTarjeta from './Components/DetalleTarjeta';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +33,22 @@ const router = createBrowserRouter([
       {
         path: '/clientes/detalle/:id',
         element: <DetalleCliente />
+      },
+      {
+        path: '/tarjetas',
+        element: <Index_Tarjetas />
+      },
+      {
+        path: '/tarjetas/formulario',
+        element: <FormularioTarjeta />
+      },
+      {
+        path: '/tarjetas/editar/:id',
+        element: <FormularioTarjeta />
+      },
+      {
+        path: '/tarjetas/detalle/:id',
+        element: <DetalleTarjeta />
       }
     ]
   }
