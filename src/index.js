@@ -8,6 +8,8 @@ import Index_Clientes from './Components/Index_Clientes';
 import ErrorPage from './Pages/ErrorPage';
 import DetalleCliente from './Components/DetalleCliente';
 import FormularioCliente from './Components/FormularioCliente';
+import CuentaList from './Components/CuentaList';
+import CreateEditCuenta from './Components/CreateEditCuenta';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +32,19 @@ const router = createBrowserRouter([
       {
         path: '/clientes/detalle/:id',
         element: <DetalleCliente />
+      },
+      // Rutas para Cuentas
+      {
+        path: '/cuentas',
+        element: <CuentaList />
+      },
+      {
+        path: '/cuentas/nueva',
+        element: <CreateEditCuenta />
+      },
+      {
+        path: '/cuentas/editar/:id',
+        element: <CreateEditCuenta />
       }
     ]
   }
