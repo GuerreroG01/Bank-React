@@ -11,6 +11,8 @@ import DetalleCliente from './Components/DetalleCliente';
 import FormularioCliente from './Components/FormularioCliente';
 import FormularioTarjeta from './Components/FormularioTarjeta';
 import DetalleTarjeta from './Components/DetalleTarjeta';
+import CuentaList from './Components/CuentaList';
+import CreateEditCuenta from './Components/CreateEditCuenta';
 
 const router = createBrowserRouter([
   {
@@ -49,6 +51,19 @@ const router = createBrowserRouter([
       {
         path: '/tarjetas/detalle/:id',
         element: <DetalleTarjeta />
+      },
+      // Rutas para Cuentas
+      {
+        path: '/cuentas',
+        element: <CuentaList />
+      },
+      {
+        path: '/cuentas/nueva',
+        element: <CreateEditCuenta />
+      },
+      {
+        path: '/cuentas/editar/:id',
+        element: <CreateEditCuenta />
       }
     ]
   }
