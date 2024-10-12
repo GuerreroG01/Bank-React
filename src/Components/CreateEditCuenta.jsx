@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Container, Typography, Box, IconButton, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
-import axios from 'axios';
+import { TextField, Button, Container, Typography, Box, IconButton, MenuItem, Select, FormControl, InputLabel, Snackbar, Alert } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-
+import CuentaService from '../Services/CuentaService'; // Servicio de cuentas
 
 const CreateEditCuenta = () => {
     const { id } = useParams();
@@ -15,12 +14,19 @@ const CreateEditCuenta = () => {
         clienteId: ''
     });
 
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
     useEffect(() => {
         if (id) {
             // Cargar datos de la cuenta si es edición
-            axios.get(`/api/cuenta/${id}`)
+            CuentaService.getCuentaById(id)
                 .then(response => setCuenta(response.data))
-                .catch(error => console.log(error));
+                .catch(error => {
+                    console.error('Error cargando la cuenta:', error);
+                    mostrarNotificacion('Error al cargar la cuenta', 'error');
+                });
         }
     }, [id]);
 
@@ -29,25 +35,33 @@ const CreateEditCuenta = () => {
         setCuenta({ ...cuenta, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (id) {
-            // Actualizar cuenta
-            axios.put(`/api/cuenta/${id}`, cuenta)
-                .then(() => {
-                    console.log('Cuenta actualizada');
-                    navigate('/cuentas'); // Redirigir después de actualizar
-                })
-                .catch(error => console.log(error));
-        } else {
-            // Crear nueva cuenta
-            axios.post('/api/cuenta', cuenta)
-                .then(() => {
-                    console.log('Cuenta creada');
-                    navigate('/cuentas'); // Redirigir después de crear
-                })
-                .catch(error => console.log(error));
+        try {
+            if (id) {
+                // Actualizar cuenta
+                await CuentaService.updateCuenta(id, cuenta);
+                mostrarNotificacion('Cuenta actualizada exitosamente.', 'success');
+            } else {
+                // Crear nueva cuenta
+                await CuentaService.createCuenta(cuenta);
+                mostrarNotificacion('Cuenta creada exitosamente.', 'success');
+            }
+            navigate('/cuentas'); // Redirigir después de la acción
+        } catch (error) {
+            console.error('Error al guardar la cuenta:', error);
+            mostrarNotificacion('Error al guardar la cuenta. Por favor, inténtelo de nuevo.', 'error');
         }
+    };
+
+    const mostrarNotificacion = (mensaje, tipo) => {
+        setSnackbarMessage(mensaje);
+        setSnackbarSeverity(tipo);
+        setOpenSnackbar(true);
+    };
+
+    const handleSnackbarClose = () => {
+        setOpenSnackbar(false);
     };
 
     return (
@@ -154,6 +168,17 @@ const CreateEditCuenta = () => {
                     ATRÁS
                 </Button>
             </Box>
+
+            {/* Snackbar para notificaciones */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                onClose={handleSnackbarClose}
+            >
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 };
