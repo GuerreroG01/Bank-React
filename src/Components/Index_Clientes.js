@@ -14,8 +14,11 @@ import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 
 function Row({ cliente, onEdit, onDelete, onViewDetails }) {
   const [open, setOpen] = useState(false);
@@ -142,17 +145,76 @@ const Index_Clientes = () => {
     setOpenSnackbar(false);
   };
 
+  const exportToExcel = () => {
+    const filteredClientes = clientes.map(({ foto, nacimiento, ...rest }) => ({
+        ...rest,
+        nacimiento: new Date(nacimiento)
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(filteredClientes);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
+
+    const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (!worksheet[cellAddress]) continue;
+        worksheet[cellAddress].s = {
+            font: {
+                bold: true,
+                color: { rgb: "FFFFFF" }
+            },
+            fill: {
+                fgColor: { rgb: "4F81BD" }
+            },
+            alignment: {
+                horizontal: "center"
+            }
+        };
+    }
+
+    for (let row = 0; row <= filteredClientes.length; row++) {
+        for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (!worksheet[cellAddress]) continue;
+            worksheet[cellAddress].s = {
+                alignment: {
+                    horizontal: "center"
+                }
+            };
+        }
+    }
+
+    const columnWidths = [
+        { wch: 5 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 10 }
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    XLSX.writeFile(workbook, 'clientes.xlsx');
+  };
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" gutterBottom>
           Clientes
         </Typography>
-        <Tooltip title="Nuevo Cliente">
-          <IconButton color="primary" onClick={handleCreateNew}>
-            <AddIcon />
-          </IconButton>
-        </Tooltip>
+        <Box>
+          <Tooltip title="Nuevo Cliente">
+            <IconButton color="primary" onClick={handleCreateNew}>
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Exportar a Excel">
+            <IconButton color="success" onClick={exportToExcel}>
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
       <TableContainer component={Paper}>
         <Table>

@@ -49,5 +49,5 @@ export default {
   getClienteById,
   deleteCliente,
   updateCliente,
-  createCliente,
+  createCliente
 };
