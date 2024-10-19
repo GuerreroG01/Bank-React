@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ClienteService from '../Services/ClienteService';
+import ClienteService from '../../Services/ClienteService';
 import { Box, Typography, Button, FormControl, TextField, FormGroup, Alert, AlertTitle } from '@mui/material';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 

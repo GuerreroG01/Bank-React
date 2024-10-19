@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5011/api/Clientes';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/Clientes`;
 
 const getClientes = () => {
+  console.log('Llamando a getClientes');
   return axios.get(API_URL);
 };
 
@@ -44,10 +45,11 @@ const createCliente = async (clienteData) => {
   }
 };
 
-export default {
+const ClienteService = {
   getClientes,
   getClienteById,
   deleteCliente,
   updateCliente,
   createCliente
 };
+export default ClienteService;

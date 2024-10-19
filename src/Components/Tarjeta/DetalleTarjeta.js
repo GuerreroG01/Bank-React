@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import TarjetaService from '../Services/TarjetaService';
-import { Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Card, CardContent, CardMedia, Grid, Divider, Snackbar, Alert } from '@mui/material';
+import TarjetaService from '../../Services/TarjetaService';
+import { Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Card, CardContent, Grid, Divider, Snackbar, Alert } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';

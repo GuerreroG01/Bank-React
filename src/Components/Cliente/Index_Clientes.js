@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import TarjetaService from '../Services/TarjetaService';
+import ClienteService from '../../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
@@ -14,10 +14,12 @@ import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 
-function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
+function Row({ cliente, onEdit, onDelete, onViewDetails }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,24 +34,21 @@ function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
-        <TableCell>{tarjeta.no_Tarjeta}</TableCell>
-        <TableCell>{tarjeta.no_Cuenta}</TableCell>
-        <TableCell>{tarjeta.limite_Credito}</TableCell>
-        <TableCell>{tarjeta.vencimiento ? format(new Date(tarjeta.vencimiento), 'dd MMM yyyy', { locale: es }) : 'N/A'}</TableCell>
-
+        <TableCell>{cliente.nombre}</TableCell>
+        <TableCell>{cliente.telefono}</TableCell>
         <TableCell>
           <Tooltip title="Ver detalles">
-            <IconButton color="info" onClick={() => onViewDetails(tarjeta.id)}>
+            <IconButton color="info" onClick={() => onViewDetails(cliente.id)}>
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton color="primary" onClick={() => onEdit(tarjeta.id)}>
+            <IconButton color="primary" onClick={() => onEdit(cliente.id)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton color="secondary" onClick={() => onDelete(tarjeta.id)}>
+            <IconButton color="secondary" onClick={() => onDelete(cliente.id)}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -63,10 +62,7 @@ function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
                 Información Adicional
               </Typography>
               <Typography variant="body1">
-                Tipo de tarjeta: {tarjeta.tipo_Tarjeta}
-              </Typography>
-              <Typography variant="body1">
-                Marca de la tarjeta: {tarjeta.marca_Tarjeta}
+                Fecha de Nacimiento: {cliente.nacimiento ? format(new Date(cliente.nacimiento), 'dd MMM yyyy', { locale: es }) : 'N/A'}
               </Typography>
             </Box>
           </Collapse>
@@ -77,59 +73,59 @@ function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
 }
 
 Row.propTypes = {
-  tarjeta: PropTypes.object.isRequired,
+  cliente: PropTypes.object.isRequired,
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onViewDetails: PropTypes.func.isRequired,
 };
 
-const Index_Tarjetas = () => {
-  const [tarjetas, setTarjetas] = useState([]);
+const Index_Clientes = () => {
+  const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedTarjetaId, setSelectedTarjetaId] = useState(null);
+  const [selectedClienteId, setSelectedClienteId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchTarjetas();
+    fetchClientes();
   }, []);
 
-  const fetchTarjetas = async () => {
+  const fetchClientes = async () => {
     try {
-      const response = await TarjetaService.getTarjetas();
-      const tarjetasOrdenadas = response.data.sort((a, b) =>
+      const response = await ClienteService.getClientes();
+      const clientesOrdenados = response.data.sort((a, b) =>
         a.nombre.localeCompare(b.nombre)
       );
-      setTarjetas(tarjetasOrdenadas);
+      setClientes(clientesOrdenados);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching cards:', error);
+      console.error('Error fetching clients:', error);
       setLoading(false);
     }
   };
 
   const handleEdit = (id) => {
-    navigate(`/tarjetas/editar/${id}`);
+    navigate(`/clientes/editar/${id}`);
   };
 
   const handleDelete = (id) => {
-    setSelectedTarjetaId(id);
+    setSelectedClienteId(id);
     setOpenDialog(true);
   };
 
   const confirmDelete = async () => {
     try {
-      await TarjetaService.deleteTarjeta(selectedTarjetaId);
-      fetchTarjetas();
-      setSnackbarMessage('Tarjeta eliminada exitosamente.');
+      await ClienteService.deleteCliente(selectedClienteId);
+      fetchClientes();
+      setSnackbarMessage('Cliente eliminado exitosamente.');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
     } catch (error) {
-      console.error('Error deleting card:', error);
-      setSnackbarMessage('Error al eliminar la tarjeta. Por favor, inténtelo de nuevo.');
+      console.error('Error deleting client:', error);
+      setSnackbarMessage('Error al eliminar el cliente. Por favor, inténtelo de nuevo.');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
     }
@@ -137,38 +133,95 @@ const Index_Tarjetas = () => {
   };
 
   const handleViewDetails = (id) => {
-    navigate(`/tarjetas/detalle/${id}`);
+    navigate(`/clientes/detalle/${id}`);
   };
 
   const handleCreateNew = () => {
-    navigate('/tarjetas/formulario');
+    navigate('/clientes/formulario');
   };
 
   const handleSnackbarClose = () => {
     setOpenSnackbar(false);
   };
 
+  const exportToExcel = () => {
+    const filteredClientes = clientes.map(({ foto, nacimiento, ...rest }) => ({
+        ...rest,
+        nacimiento: new Date(nacimiento)
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(filteredClientes);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
+
+    const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
+    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (!worksheet[cellAddress]) continue;
+        worksheet[cellAddress].s = {
+            font: {
+                bold: true,
+                color: { rgb: "FFFFFF" }
+            },
+            fill: {
+                fgColor: { rgb: "4F81BD" }
+            },
+            alignment: {
+                horizontal: "center"
+            }
+        };
+    }
+
+    for (let row = 0; row <= filteredClientes.length; row++) {
+        for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+            if (!worksheet[cellAddress]) continue;
+            worksheet[cellAddress].s = {
+                alignment: {
+                    horizontal: "center"
+                }
+            };
+        }
+    }
+
+    const columnWidths = [
+        { wch: 5 },
+        { wch: 30 },
+        { wch: 15 },
+        { wch: 20 },
+        { wch: 10 }
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    XLSX.writeFile(workbook, 'clientes.xlsx');
+  };
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4" gutterBottom>
-          Tarjetas
+          Clientes
         </Typography>
-        <Tooltip title="Nueva Tarjeta">
-          <IconButton color="primary" onClick={handleCreateNew}>
-            <AddIcon />
-          </IconButton>
-        </Tooltip>
+        <Box>
+          <Tooltip title="Nuevo Cliente">
+            <IconButton color="primary" onClick={handleCreateNew}>
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Exportar a Excel">
+            <IconButton color="success" onClick={exportToExcel}>
+              <DownloadIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell />
-              <TableCell>No. Tarjeta</TableCell>
-              <TableCell>No. Cuenta</TableCell>
-              <TableCell>No. Limite de credito</TableCell>
-              <TableCell>Fecha de vencimiento</TableCell>
+              <TableCell>Nombre</TableCell>
+              <TableCell>Teléfono</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -187,10 +240,10 @@ const Index_Tarjetas = () => {
                 </TableRow>
               ))
             ) : (
-              tarjetas.map(tarjeta => (
+              clientes.map(cliente => (
                 <Row
-                  key={tarjeta.id}
-                  tarjeta={tarjeta}
+                  key={cliente.id}
+                  cliente={cliente}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onViewDetails={handleViewDetails}
@@ -206,7 +259,7 @@ const Index_Tarjetas = () => {
       >
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
-          <Typography>¿Estás seguro de que deseas eliminar esta tarjeta?</Typography>
+          <Typography>¿Estás seguro de que deseas eliminar este cliente?</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
@@ -231,4 +284,4 @@ const Index_Tarjetas = () => {
   );
 };
 
-export default Index_Tarjetas;
+export default Index_Clientes;

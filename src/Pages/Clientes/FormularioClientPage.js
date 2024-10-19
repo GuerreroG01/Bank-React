@@ -1,6 +1,6 @@
 import FormularioClientes from '../../Components/Clientes/FormularioCliente'
 
-export default function Index(){
+export default function FormularioClientPage(){
     return(
         <FormularioClientes />
     );

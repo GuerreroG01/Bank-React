@@ -4,15 +4,17 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import Index_Clientes from './Components/Index_Clientes';
-import Index_Tarjetas from './Components/Index_Tarjetas';
 import ErrorPage from './Pages/ErrorPage';
-import DetalleCliente from './Components/DetalleCliente';
-import FormularioCliente from './Components/FormularioCliente';
-import FormularioTarjeta from './Components/FormularioTarjeta';
-import DetalleTarjeta from './Components/DetalleTarjeta';
-import CuentaList from './Components/CuentaList';
-import CreateEditCuenta from './Components/CreateEditCuenta';
+import IndexClientes from './Components/Cliente/Index_Clientes';
+import FormularioCliente from './Components/Cliente/FormularioCliente';
+import DetalleCliente from './Components/Cliente/DetalleCliente';
+import IndexTarjetas from './Components/Tarjeta/Index_Tarjetas';
+import FormularioTarjeta from './Components/Tarjeta/FormularioTarjeta';
+import DetalleTarjeta from './Components/Tarjeta/DetalleTarjeta';
+import IndexCuentas from './Components/Cuenta/Index_Cuentas';
+import FormularioCuentas from './Components/Cuenta/FormularioCuenta';
+import DetalleCuenta from './Pages/Cuentas/DetalleAccountPage';
+
 
 const router = createBrowserRouter([
   {
@@ -22,7 +24,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/clientes',
-        element: <Index_Clientes />
+        element: <IndexClientes />
       },
       {
         path: '/clientes/formulario',
@@ -38,7 +40,7 @@ const router = createBrowserRouter([
       },
       {
         path: '/tarjetas',
-        element: <Index_Tarjetas />
+        element: <IndexTarjetas />
       },
       {
         path: '/tarjetas/formulario',
@@ -52,18 +54,21 @@ const router = createBrowserRouter([
         path: '/tarjetas/detalle/:id',
         element: <DetalleTarjeta />
       },
-      // Rutas para Cuentas
       {
         path: '/cuentas',
-        element: <CuentaList />
+        element: <IndexCuentas />
       },
       {
         path: '/cuentas/nueva',
-        element: <CreateEditCuenta />
+        element: <FormularioCuentas />
       },
       {
         path: '/cuentas/editar/:id',
-        element: <CreateEditCuenta />
+        element: <FormularioCuentas />
+      },
+      {
+        path: '/cuentas/detalle/:id',
+        element: <DetalleCuenta />
       }
     ]
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import TarjetaService from '../Services/TarjetaService';
+import TarjetaService from '../../Services/TarjetaService';
 import { Box, Typography, Button, FormControl, TextField, FormGroup, Alert, AlertTitle, Select, MenuItem, InputLabel, ListItemIcon, ListItemText } from '@mui/material';
 import { FaCcMastercard } from "react-icons/fa";
 import { FaCcAmex } from "react-icons/fa";

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5011/api/Tarjeta';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/Tarjeta`;
 
 const getTarjetas = () => {
   return axios.get(API_URL);
@@ -44,10 +44,11 @@ const createTarjeta = async (tarjetaData) => {
   }
 };
 
-export default {
+const TarjetaService = {
   getTarjetas,
   getTarjetasById,
   deleteTarjeta,
   updateTarjeta,
   createTarjeta,
 };
+export default TarjetaService;
