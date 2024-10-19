@@ -11,6 +11,7 @@ const FormularioCliente = () => {
     nombre: '',
     telefono: '',
     nacimiento: '',
+    email: '',
     foto: null,
   });
   const [fileName, setFileName] = useState('');
@@ -54,26 +55,26 @@ const FormularioCliente = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    if (!cliente.nombre || !cliente.telefono || !cliente.nacimiento) {
+
+    if (!cliente.nombre || !cliente.telefono || !cliente.nacimiento || !cliente.email) {
         alert('Por favor, completa todos los campos obligatorios.');
         return;
     }
-  
+
     try {
         if (id) {
-            await ClienteService.updateCliente(id, cliente, cliente.foto);
+            await ClienteService.updateCliente(id, cliente, cliente.foto); // Asegúrate de que updateCliente también maneje FormData
             setExitocreacion('Cliente actualizado exitosamente');
         } else {
-            await ClienteService.createCliente(cliente, cliente.foto);
+            await ClienteService.createCliente(cliente, cliente.foto); // Aquí se envían los datos correctamente
             setExitocreacion('Cliente creado exitosamente');
         }
-  
+
         setTimeout(() => {
             setExitocreacion('');
             navigate('/clientes');
         }, 2000);
-  
+
     } catch (error) {
         console.error('Error al guardar cliente:', error);
         setMensajeError('Hubo un error al guardar el cliente. Por favor, inténtalo de nuevo.');
@@ -125,6 +126,18 @@ const FormularioCliente = () => {
               </Box>
             )}
           </FormControl>
+          <FormControl margin="normal" fullWidth>
+            <TextField
+              label="Email"
+              name="email"
+              value={cliente.email}
+              onChange={handleChange}
+              variant="outlined"
+              required
+              type="email"
+            />
+          </FormControl>
+
           <FormControl margin="normal" fullWidth>
             <TextField
               label="Nombre Completo"
@@ -190,5 +203,4 @@ const FormularioCliente = () => {
     </Box>
   );
 };
-
 export default FormularioCliente;

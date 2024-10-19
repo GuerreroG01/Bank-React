@@ -30,15 +30,24 @@ const updateCliente = async (id, clienteData) => {
   }
 };
 
-const createCliente = async (clienteData) => {
+const createCliente = async (cliente, foto) => {
+  const formData = new FormData();
+  formData.append('nombre', cliente.nombre);
+  formData.append('telefono', cliente.telefono);
+  formData.append('nacimiento', cliente.nacimiento);
+  formData.append('email', cliente.email); // Asegúrate de incluir el correo electrónico
+  if (foto) {
+      formData.append('foto', foto); // Solo si hay una foto
+  }
+
   try {
-      const response = await axios.post(API_URL, clienteData, {
+      const response = await axios.post(API_URL, formData, {
           headers: {
               'Content-Type': 'multipart/form-data',
           },
       });
       console.log('Cliente creado:', response.data);
-      return response;
+      return response.data;
   } catch (error) {
       console.error('Error creando cliente:', error);
       throw error;

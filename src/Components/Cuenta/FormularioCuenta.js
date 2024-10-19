@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CuentaService from '../../Services/CuentaService';
 import ClienteService from '../../Services/ClienteService';
-import { Box, Typography, Button, FormControl, FormGroup, MenuItem, InputLabel, Alert, AlertTitle, Select, TextField } from '@mui/material';
+import { Box, Typography, Button, FormControl, FormGroup, MenuItem, InputLabel, Alert, AlertTitle, Select, TextField, InputAdornment } from '@mui/material';
 
 const FormularioCuenta = () => {
   const { id } = useParams();
@@ -11,12 +11,30 @@ const FormularioCuenta = () => {
     tipo: '',
     saldo: '',
     infoTarjeta: '',
-    clienteId: ''
+    clienteId: '',
+    moneda: 'NIO'
   });
   const [clientes, setClientes] = useState([]);
   const [mensajeError, setMensajeError] = useState('');
   const [exitocreacion, setExitocreacion] = useState('');
   const [fotoCliente, setFotoCliente] = useState('');
+  const [saldoOriginal, setSaldoOriginal] = useState('');
+  const [monedaOriginal, setMonedaOriginal] = useState('');
+
+  const tasasCambio = {
+    EUR: {
+      USD: 1.09,
+      NIO: 39.91
+    },
+    USD: {
+      EUR: 0.92,
+      NIO: 36.69
+    },
+    NIO: {
+      EUR: 0.025,
+      USD: 0.027
+    },
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,6 +44,8 @@ const FormularioCuenta = () => {
         if (id) {
           const cuentaResponse = await CuentaService.getCuentaById(id);
           setCuenta(cuentaResponse.data);
+          setSaldoOriginal(cuentaResponse.data.saldo);
+          setMonedaOriginal(cuentaResponse.data.moneda);
           const clienteSeleccionado = clientesResponse.data.find(cliente => cliente.id === cuentaResponse.data.clienteId);
           setFotoCliente(clienteSeleccionado ? `${process.env.REACT_APP_API_URL}/Images/${clienteSeleccionado.foto}` : '');
         }
@@ -48,6 +68,36 @@ const FormularioCuenta = () => {
       const clienteSeleccionado = clientes.find(cliente => cliente.id === value);
       setFotoCliente(clienteSeleccionado ? `${process.env.REACT_APP_API_URL}/Images/${clienteSeleccionado.foto}` : '');
     }
+  };
+
+  const handleCurrencyChange = (value) => {
+    if (value === cuenta.moneda) {
+      return;
+    }
+
+    if (value === monedaOriginal) {
+      setCuenta(prevState => ({
+        ...prevState,
+        saldo: saldoOriginal,
+        moneda: value
+      }));
+    } else {
+      const saldoConvertido = convertirSaldo(cuenta.saldo, cuenta.moneda, value);
+      setCuenta(prevState => ({
+        ...prevState,
+        moneda: value,
+        saldo: saldoConvertido
+      }));
+    }
+  };
+
+  const convertirSaldo = (saldoOriginal, monedaOriginal, monedaObjetivo) => {
+    if (monedaOriginal === monedaObjetivo) {
+      return parseFloat(saldoOriginal).toFixed(2);
+    }
+
+    const tasaCambio = tasasCambio[monedaOriginal][monedaObjetivo];
+    return (saldoOriginal * tasaCambio).toFixed(2);
   };
 
   const handleSubmit = async (e) => {
@@ -137,12 +187,21 @@ const FormularioCuenta = () => {
                 required
                 label="Cliente"
               >
-                {clientes.map(cliente => (
-                  <MenuItem key={cliente.id} value={cliente.id}>
-                    {cliente.nombre}
-                  </MenuItem>
-                ))}
+                {clientes.length === 0 ? (
+                  <MenuItem disabled>No hay clientes disponibles</MenuItem>
+                ) : (
+                  clientes.map(cliente => (
+                    <MenuItem key={cliente.id} value={cliente.id}>
+                      {cliente.nombre}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
+              {clientes.length === 0 && (
+                <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                  No hay clientes disponibles para seleccionar.
+                </Typography>
+              )}
             </FormControl>
             <FormControl fullWidth variant="outlined" margin="normal">
               <InputLabel id="tipo-label">Tipo de Cuenta</InputLabel>
@@ -167,12 +226,35 @@ const FormularioCuenta = () => {
             <FormControl margin="normal" fullWidth>
               <TextField
                 label="Saldo"
-                name="saldo"
+                placeholder="Monto"
                 value={cuenta.saldo}
+                name="saldo"
                 onChange={handleChange}
                 variant="outlined"
                 required
-                type="number"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      {cuenta.moneda === 'NIO' ? 'C$' : cuenta.moneda === 'USD' ? '$' : '€'}
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <FormControl variant="outlined" size="small">
+                        <Select
+                          value={cuenta.moneda}
+                          onChange={(e) => handleCurrencyChange(e.target.value)}
+                          variant="outlined"
+                          sx={{ ml: 1 }}
+                        >
+                          <MenuItem value="NIO">Córdoba</MenuItem>
+                          <MenuItem value="USD">US dollar</MenuItem>
+                          <MenuItem value="EUR">Euro</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </InputAdornment>
+                  ),
+                }}
               />
             </FormControl>
             <FormControl margin="normal" fullWidth>

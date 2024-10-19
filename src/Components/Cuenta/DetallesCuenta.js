@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CuentaService from '../../Services/CuentaService';
 import ClienteService from '../../Services/ClienteService';
-import { Box, Typography, Button, Alert, AlertTitle } from '@mui/material';
+import { Box, Typography, Button, Alert, AlertTitle, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -13,6 +13,9 @@ const DetallesCuenta = () => {
   const [cuenta, setCuenta] = useState(null);
   const [cliente, setCliente] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
+  const [monedaSeleccionada, setMonedaSeleccionada] = useState('');
+  const [saldoOriginal, setSaldoOriginal] = useState(0);
+  const [monedaOriginal, setMonedaOriginal] = useState('');
 
   useEffect(() => {
     const fetchDetalles = async () => {
@@ -20,9 +23,12 @@ const DetallesCuenta = () => {
         const cuentaResponse = await CuentaService.getCuentaById(id);
         setCuenta(cuentaResponse.data);
 
-        // Obtener el cliente asociado a la cuenta
         const clienteResponse = await ClienteService.getClienteById(cuentaResponse.data.clienteId);
         setCliente(clienteResponse.data);
+
+        setMonedaSeleccionada(cuentaResponse.data.moneda);
+        setSaldoOriginal(cuentaResponse.data.saldo);
+        setMonedaOriginal(cuentaResponse.data.moneda);
       } catch (error) {
         console.error('Error fetching cuenta o cliente:', error);
         setMensajeError('Hubo un error al cargar los detalles de la cuenta. Por favor, inténtalo de nuevo.');
@@ -59,6 +65,45 @@ const DetallesCuenta = () => {
     return <Typography>Cargando...</Typography>;
   }
 
+  const obtenerNombreMoneda = (moneda) => {
+    switch (moneda) {
+      case 'NIO':
+        return 'Córdobas';
+      case 'USD':
+        return 'Dólares';
+      case 'EUR':
+        return 'Euros';
+      default:
+        return 'Desconocido';
+    }
+  };
+
+  const tasasCambio = {
+    EUR: {
+      USD: 1.08,
+      NIO: 36.15
+    },
+    USD: {
+      EUR: 0.93,
+      NIO: 33.54
+    },
+    NIO: {
+      EUR: 0.028,
+      USD: 0.029
+    },
+  };
+
+  const convertirSaldo = (saldoOriginal, monedaOriginal, monedaObjetivo) => {
+    if (monedaOriginal === monedaObjetivo) {
+      return saldoOriginal;
+    }
+
+    const tasaCambio = tasasCambio[monedaOriginal][monedaObjetivo];
+    return saldoOriginal * tasaCambio;
+  };
+
+  const saldoConvertido = convertirSaldo(saldoOriginal, monedaOriginal, monedaSeleccionada);
+
   return (
     <Box
       sx={{
@@ -70,11 +115,25 @@ const DetallesCuenta = () => {
         backgroundColor: '#fff',
       }}
     >
-      <Typography variant="h5" gutterBottom>
-        Detalles de la Cuenta
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+        <Typography variant="h5" gutterBottom>
+          Detalles de la Cuenta
+        </Typography>
+        
+        <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Convertidor</InputLabel>
+          <Select
+            value={monedaSeleccionada}
+            onChange={(e) => setMonedaSeleccionada(e.target.value)}
+            label="Seleccionar Moneda"
+          >
+            <MenuItem value="EUR">Euros</MenuItem>
+            <MenuItem value="USD">Dólares</MenuItem>
+            <MenuItem value="NIO">Córdobas</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
 
-      {/* Mostrar detalles del cliente */}
       <Box
         sx={{
           display: 'flex',
@@ -110,13 +169,15 @@ const DetallesCuenta = () => {
         </Box>
       </Box>
 
-      {/* Mostrar detalles de la cuenta */}
       <Box sx={{ padding: 2, border: '1px solid #ccc', borderRadius: 2, backgroundColor: '#f9f9f9' }}>
         <Typography variant="h6" gutterBottom>
           Información de la Cuenta
         </Typography>
         <Typography variant="body1">Tipo de Cuenta: {cuenta.tipo}</Typography>
-        <Typography variant="body1">Saldo: ${cuenta.saldo}</Typography>
+        <Typography variant="body1">
+          Saldo: {monedaSeleccionada === 'NIO' ? `C$${saldoConvertido.toFixed(2)}` : monedaSeleccionada === 'USD' ? `$${saldoConvertido.toFixed(2)}` : `€${saldoConvertido.toFixed(2)}`}
+        </Typography>
+        <Typography variant="body1">Moneda: {obtenerNombreMoneda(cuenta.moneda)}</Typography>
         <Typography variant="body1">Beneficiario: {cuenta.beneficiarios || 'N/A'}</Typography>
       </Box>
 
@@ -134,7 +195,7 @@ const DetallesCuenta = () => {
             variant="outlined"
             color="primary"
             startIcon={<EditIcon />}
-            onClick={() => navigate(`/cuentas/editar/${id}`)} // Reemplaza con la ruta correcta de edición
+            onClick={() => navigate(`/cuentas/editar/${id}`)}
           >
             Editar
           </Button>
