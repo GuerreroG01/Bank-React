@@ -10,7 +10,6 @@ const FormularioCuenta = () => {
   const [cuenta, setCuenta] = useState({
     tipo: '',
     saldo: '',
-    infoTarjeta: '',
     clienteId: '',
     moneda: 'NIO'
   });
@@ -100,29 +99,47 @@ const FormularioCuenta = () => {
     return (saldoOriginal * tasaCambio).toFixed(2);
   };
 
+  const generarNumeroCuenta = () => {
+    const caracteres = '0123456789';
+    let cuenta = '';
+    for (let i = 0; i < 10; i++) {
+        cuenta += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+    return cuenta;
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!cuenta.tipo || !cuenta.saldo || !cuenta.clienteId) {
-      alert('Por favor, completa todos los campos obligatorios.');
-      return;
+    
+    console.log("Datos de la cuenta antes de enviar:", cuenta);
+    
+    if (!id) {
+        cuenta.No_Cuenta = generarNumeroCuenta();
     }
+    
+    cuenta.saldo = parseFloat(cuenta.saldo);
+
+    if (!cuenta.tipo || !cuenta.saldo || !cuenta.clienteId || !cuenta.beneficiarios) {
+        alert('Por favor, completa todos los campos obligatorios.');
+        return;
+    }
+
     try {
-      if (id) {
-        await CuentaService.updateCuenta(id, cuenta);
-        setExitocreacion('Cuenta actualizada exitosamente');
-      } else {
-        await CuentaService.createCuenta(cuenta);
-        setExitocreacion('Cuenta creada exitosamente');
-      }
-      setTimeout(() => {
-        setExitocreacion('');
-        navigate('/cuentas');
-      }, 2000);
+        if (id) {
+            await CuentaService.updateCuenta(id, cuenta);
+            setExitocreacion('Cuenta actualizada exitosamente');
+        } else {
+            await CuentaService.createCuenta(cuenta);
+            setExitocreacion('Cuenta creada exitosamente');
+        }
+        setTimeout(() => {
+            setExitocreacion('');
+            navigate('/cuentas');
+        }, 2000);
     } catch (error) {
-      console.error('Error al guardar cuenta:', error);
-      setMensajeError('Hubo un error al guardar la cuenta. Por favor, inténtalo de nuevo.');
+        console.error('Error al guardar cuenta:', error.response ? error.response.data : error.message);
+        setMensajeError('Hubo un error al guardar la cuenta. Por favor, inténtalo de nuevo.');
     }
-  };
+  };  
 
   return (
     <Box
