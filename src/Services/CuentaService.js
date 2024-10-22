@@ -39,7 +39,11 @@ const createCuenta = async (cuentaData) => {
     console.log('Cuenta creada:', response.data);
     return response;
   } catch (error) {
-    console.error('Error creando cuenta:', error);
+    if (error.response && error.response.data) {
+      console.error('Error creando cuenta:', error.response.data.errors || error.response.data);
+    } else {
+      console.error('Error creando cuenta:', error.message);
+    }
     throw error;
   }
 };

@@ -63,10 +63,10 @@ const FormularioCliente = () => {
 
     try {
         if (id) {
-            await ClienteService.updateCliente(id, cliente, cliente.foto); // Asegúrate de que updateCliente también maneje FormData
+            await ClienteService.updateCliente(id, cliente, cliente.foto);
             setExitocreacion('Cliente actualizado exitosamente');
         } else {
-            await ClienteService.createCliente(cliente, cliente.foto); // Aquí se envían los datos correctamente
+            await ClienteService.createCliente(cliente, cliente.foto);
             setExitocreacion('Cliente creado exitosamente');
         }
 
@@ -128,18 +128,6 @@ const FormularioCliente = () => {
           </FormControl>
           <FormControl margin="normal" fullWidth>
             <TextField
-              label="Email"
-              name="email"
-              value={cliente.email}
-              onChange={handleChange}
-              variant="outlined"
-              required
-              type="email"
-            />
-          </FormControl>
-
-          <FormControl margin="normal" fullWidth>
-            <TextField
               label="Nombre Completo"
               name="nombre"
               value={cliente.nombre}
@@ -157,6 +145,17 @@ const FormularioCliente = () => {
               variant="outlined"
               required
               type="number"
+            />
+          </FormControl>
+          <FormControl margin="normal" fullWidth>
+            <TextField
+              label="Email"
+              name="email"
+              value={cliente.email}
+              onChange={handleChange}
+              variant="outlined"
+              required
+              type="email"
             />
           </FormControl>
           <FormControl margin="normal" fullWidth>
