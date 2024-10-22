@@ -3,7 +3,6 @@ import axios from 'axios';
 const API_URL = `${process.env.REACT_APP_API_URL}/api/Clientes`;
 
 const getClientes = () => {
-  console.log('Llamando a getClientes');
   return axios.get(API_URL);
 };
 
@@ -35,9 +34,9 @@ const createCliente = async (cliente, foto) => {
   formData.append('nombre', cliente.nombre);
   formData.append('telefono', cliente.telefono);
   formData.append('nacimiento', cliente.nacimiento);
-  formData.append('email', cliente.email); // Asegúrate de incluir el correo electrónico
+  formData.append('email', cliente.email);
   if (foto) {
-      formData.append('foto', foto); // Solo si hay una foto
+      formData.append('foto', foto);
   }
 
   try {

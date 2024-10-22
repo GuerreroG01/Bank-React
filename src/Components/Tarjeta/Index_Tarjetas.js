@@ -39,17 +39,17 @@ function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
 
         <TableCell>
           <Tooltip title="Ver detalles">
-            <IconButton color="info" onClick={() => onViewDetails(tarjeta.id)}>
+            <IconButton color="info" onClick={() => onViewDetails(tarjeta.no_Tarjeta)}>
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Editar">
-            <IconButton color="primary" onClick={() => onEdit(tarjeta.id)}>
+            <IconButton color="primary" onClick={() => onEdit(tarjeta.no_Tarjeta)}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton color="secondary" onClick={() => onDelete(tarjeta.id)}>
+            <IconButton color="secondary" onClick={() => onDelete(tarjeta.no_Tarjeta)}>
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -101,7 +101,7 @@ const Index_Tarjetas = () => {
     try {
       const response = await TarjetaService.getTarjetas();
       const tarjetasOrdenadas = response.data.sort((a, b) =>
-        a.nombre.localeCompare(b.nombre)
+        a.marca_Tarjeta.localeCompare(b.marca_Tarjeta)
       );
       setTarjetas(tarjetasOrdenadas);
       setLoading(false);
@@ -111,12 +111,12 @@ const Index_Tarjetas = () => {
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/tarjetas/editar/${id}`);
+  const handleEdit = (no_Tarjeta) => {
+    navigate(`/tarjetas/editar/${no_Tarjeta}`);
   };
 
-  const handleDelete = (id) => {
-    setSelectedTarjetaId(id);
+  const handleDelete = (no_Tarjeta) => {
+    setSelectedTarjetaId(no_Tarjeta);
     setOpenDialog(true);
   };
 
@@ -189,7 +189,7 @@ const Index_Tarjetas = () => {
             ) : (
               tarjetas.map(tarjeta => (
                 <Row
-                  key={tarjeta.id}
+                  key={tarjeta.no_Tarjeta}
                   tarjeta={tarjeta}
                   onEdit={handleEdit}
                   onDelete={handleDelete}

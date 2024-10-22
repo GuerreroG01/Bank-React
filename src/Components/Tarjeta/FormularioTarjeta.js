@@ -29,7 +29,7 @@ const FormularioTarjeta = () => {
     marca_tarjeta: "",
     no_tarjeta: "",
     no_cuenta: "",
-    fecha_vencimiento: "",
+    vencimiento: "",
     codigo_seguridad: "",
     limite_credito: "",
   });
@@ -38,20 +38,27 @@ const FormularioTarjeta = () => {
   const [mensajeError, setMensajeError] = useState("");
   const [exitocreacion, setExitocreacion] = useState("");
 
+  const generarNumeroTarjeta = () => {
+    let numero = "";
+    for (let i = 0; i < 16; i++) {
+      numero += Math.floor(Math.random() * 10).toString();
+    }
+    return numero;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const cuentasResponse = await CuentaService.getCuentas();
         setCuenta(cuentasResponse.data);
-        console.log(cuentasResponse.data);
         if (id) {
-          TarjetaService.getTarjetasById(id)
-            .then(response => {
-              setTarjeta(response.data);
-            })
-            .catch(error => {
-              console.error("Error fetching card:", error);
-            });
+          const response = await TarjetaService.getTarjetasById(id);
+          setTarjeta(response.data);
+        } else {
+          setTarjeta(prev => ({
+            ...prev,
+            no_tarjeta: generarNumeroTarjeta()
+          }));
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -84,17 +91,21 @@ const FormularioTarjeta = () => {
     if (
       !tarjeta.tipo_tarjeta ||
       !tarjeta.marca_tarjeta ||
-      !tarjeta.no_tarjeta ||
       !tarjeta.no_cuenta ||
       !tarjeta.codigo_seguridad ||
-      !tarjeta.fecha_vencimiento ||
+      !tarjeta.vencimiento ||
       !tarjeta.limite_credito
     ) {
       alert("Por favor, completa todos los campos obligatorios.");
       return;
     }
 
+    if (!id && !tarjeta.no_tarjeta) {
+      tarjeta.no_tarjeta = generarNumeroTarjeta();
+    }
+
     try {
+      console.log("Datos enviados:", tarjeta);
       if (id) {
         await TarjetaService.updateTarjeta(id, tarjeta);
         setExitocreacion("Tarjeta actualizada exitosamente");
@@ -102,11 +113,6 @@ const FormularioTarjeta = () => {
         await TarjetaService.createTarjeta(tarjeta);
         setExitocreacion("Tarjeta creada exitosamente");
       }
-
-      // setTimeout(() => {
-      //   setExitocreacion("");
-      //   navigate("/tarjetas");
-      // }, 2000);
     } catch (error) {
       console.error("Error al guardar tarjeta:", error);
       setMensajeError(
@@ -132,6 +138,18 @@ const FormularioTarjeta = () => {
       </Typography>
       <form onSubmit={handleSubmit}>
         <FormGroup>
+          <FormControl margin="normal" fullWidth>
+            <TextField
+              label="No. tarjeta"
+              name="no_tarjeta"
+              value={tarjeta.no_tarjeta}
+              onChange={handleChange}
+              variant="outlined"
+              required
+              type="text"
+              disabled
+            />
+          </FormControl>
           <FormControl margin="normal" fullWidth>
             <InputLabel id="cuenta-label">Cuenta</InputLabel>
             <Select
@@ -240,18 +258,6 @@ const FormularioTarjeta = () => {
 
           <FormControl margin="normal" fullWidth>
             <TextField
-              label="No. tarjeta"
-              name="no_tarjeta"
-              value={tarjeta.no_tarjeta}
-              onChange={handleChange}
-              variant="outlined"
-              required
-              type="text"
-            />
-          </FormControl>
-
-          <FormControl margin="normal" fullWidth>
-            <TextField
               label="Código de seguridad"
               name="codigo_seguridad"
               value={tarjeta.codigo_seguridad}
@@ -277,11 +283,11 @@ const FormularioTarjeta = () => {
           <FormControl margin="normal" fullWidth>
             <TextField
               label="Fecha de vencimiento"
-              name="fecha_vencimiento"
+              name="vencimiento"
               type="date"
               value={
-                tarjeta.fecha_vencimiento
-                  ? new Date(tarjeta.fecha_vencimiento)
+                tarjeta.vencimiento
+                  ? new Date(tarjeta.vencimiento).toISOString().split("T")[0]
                   : ""
               }
               onChange={handleChange}
@@ -341,5 +347,4 @@ const FormularioTarjeta = () => {
     </Box>
   );
 };
-
 export default FormularioTarjeta;
