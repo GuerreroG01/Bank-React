@@ -24,17 +24,9 @@ function Row({ cuenta, onEdit, onDelete, onViewDetails, clientes }) {
   return (
     <>
       <TableRow>
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
+        <TableCell>{clientes.find(cliente => cliente.id === cuenta.clienteId)?.nombre || 'N/A'}</TableCell>
+        <TableCell>{cuenta.no_Cuenta}</TableCell>
         <TableCell>{cuenta.tipo}</TableCell>
-        <TableCell>{cuenta.saldo}</TableCell>
         <TableCell>
           <Tooltip title="Ver detalles">
             <IconButton color="info" onClick={() => onViewDetails(cuenta.no_Cuenta)}>
@@ -51,23 +43,6 @@ function Row({ cuenta, onEdit, onDelete, onViewDetails, clientes }) {
               <DeleteIcon />
             </IconButton>
           </Tooltip>
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto, sans-serif' }}>
-                Información Adicional
-              </Typography>
-              <Typography variant="body1">
-                Beneficiario: {cuenta.beneficiarios || 'N/A'}
-              </Typography>
-              <Typography variant="body1">
-                Cliente: {clientes.find(cliente => cliente.id === cuenta.clienteId)?.nombre || 'N/A'}
-              </Typography>
-            </Box>
-          </Collapse>
         </TableCell>
       </TableRow>
     </>
@@ -233,9 +208,9 @@ const Index_Cuentas = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell />
+              <TableCell>Cliente</TableCell>
+              <TableCell>Número de Cuenta</TableCell>
               <TableCell>Tipo de Cuenta</TableCell>
-              <TableCell>Saldo</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>

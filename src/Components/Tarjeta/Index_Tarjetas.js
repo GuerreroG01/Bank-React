@@ -1,42 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TarjetaService from '../../Services/TarjetaService';
+import ClienteService from '../../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton,
+  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Skeleton,
   Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CloseIcon from '@mui/icons-material/Close';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
-  const [open, setOpen] = useState(false);
+function Row({ tarjeta, onEdit, onDelete, onViewDetails, cliente }) {
 
   return (
     <>
       <TableRow>
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </TableCell>
+        <TableCell>{cliente ? cliente.nombre : 'N/A'}</TableCell>
         <TableCell>{tarjeta.no_Tarjeta}</TableCell>
         <TableCell>{tarjeta.no_Cuenta}</TableCell>
-        <TableCell>{tarjeta.limite_Credito}</TableCell>
         <TableCell>{tarjeta.vencimiento ? format(new Date(tarjeta.vencimiento), 'dd MMM yyyy', { locale: es }) : 'N/A'}</TableCell>
-
         <TableCell>
           <Tooltip title="Ver detalles">
             <IconButton color="info" onClick={() => onViewDetails(tarjeta.no_Tarjeta)}>
@@ -55,23 +43,6 @@ function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
           </Tooltip>
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto, sans-serif' }}>
-                Información Adicional
-              </Typography>
-              <Typography variant="body1">
-                Tipo de tarjeta: {tarjeta.tipo_Tarjeta}
-              </Typography>
-              <Typography variant="body1">
-                Marca de la tarjeta: {tarjeta.marca_Tarjeta}
-              </Typography>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
     </>
   );
 }
@@ -81,10 +52,12 @@ Row.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onViewDetails: PropTypes.func.isRequired,
+  cliente: PropTypes.object,
 };
 
 const Index_Tarjetas = () => {
   const [tarjetas, setTarjetas] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -95,19 +68,26 @@ const Index_Tarjetas = () => {
 
   useEffect(() => {
     fetchTarjetas();
+    fetchClientes();
   }, []);
 
   const fetchTarjetas = async () => {
     try {
       const response = await TarjetaService.getTarjetas();
-      const tarjetasOrdenadas = response.data.sort((a, b) =>
-        a.marca_Tarjeta.localeCompare(b.marca_Tarjeta)
-      );
-      setTarjetas(tarjetasOrdenadas);
+      setTarjetas(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching cards:', error);
       setLoading(false);
+    }
+  };  
+
+  const fetchClientes = async () => {
+    try {
+      const response = await ClienteService.getClientes();
+      setClientes(response.data);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
     }
   };
 
@@ -164,10 +144,9 @@ const Index_Tarjetas = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell />
+              <TableCell>Nombre del Cliente</TableCell>
               <TableCell>No. Tarjeta</TableCell>
               <TableCell>No. Cuenta</TableCell>
-              <TableCell>No. Limite de credito</TableCell>
               <TableCell>Fecha de vencimiento</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
@@ -181,21 +160,26 @@ const Index_Tarjetas = () => {
                   </TableCell>
                   <TableCell><Skeleton /></TableCell>
                   <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
                   <TableCell>
                     <Skeleton variant="rectangular" width={150} height={40} />
                   </TableCell>
                 </TableRow>
               ))
             ) : (
-              tarjetas.map(tarjeta => (
-                <Row
-                  key={tarjeta.no_Tarjeta}
-                  tarjeta={tarjeta}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onViewDetails={handleViewDetails}
-                />
-              ))
+              tarjetas.map(tarjeta => {
+                const cliente = clientes.find(c => c.cuentas && c.cuentas.some(cuenta => cuenta.no_Cuenta === tarjeta.no_Cuenta));
+                return (
+                  <Row
+                    key={tarjeta.no_Tarjeta}
+                    tarjeta={tarjeta}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onViewDetails={handleViewDetails}
+                    cliente={cliente}
+                  />
+                );
+              })
             )}
           </TableBody>
         </Table>

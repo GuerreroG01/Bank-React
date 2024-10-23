@@ -34,8 +34,11 @@ function Row({ cliente, onEdit, onDelete, onViewDetails }) {
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
+        <TableCell>
+          <img src={`${process.env.REACT_APP_API_URL}/Images/${cliente.foto}`} alt={cliente.nombre} style={{ width: 50, height: 50, borderRadius: '50%' }} />
+        </TableCell>
         <TableCell>{cliente.nombre}</TableCell>
-        <TableCell>{cliente.telefono}</TableCell>
+        <TableCell>{cliente.edad} años</TableCell>
         <TableCell>
           <Tooltip title="Ver detalles">
             <IconButton color="info" onClick={() => onViewDetails(cliente.id)}>
@@ -55,7 +58,7 @@ function Row({ cliente, onEdit, onDelete, onViewDetails }) {
         </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={5}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
               <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto, sans-serif' }}>
@@ -146,8 +149,8 @@ const Index_Clientes = () => {
 
   const exportToExcel = () => {
     const filteredClientes = clientes.map(({ foto, nacimiento, ...rest }) => ({
-        ...rest,
-        nacimiento: new Date(nacimiento)
+      ...rest,
+      nacimiento: new Date(nacimiento)
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(filteredClientes);
@@ -156,40 +159,40 @@ const Index_Clientes = () => {
 
     const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
     for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-        if (!worksheet[cellAddress]) continue;
-        worksheet[cellAddress].s = {
-            font: {
-                bold: true,
-                color: { rgb: "FFFFFF" }
-            },
-            fill: {
-                fgColor: { rgb: "4F81BD" }
-            },
-            alignment: {
-                horizontal: "center"
-            }
-        };
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (!worksheet[cellAddress]) continue;
+      worksheet[cellAddress].s = {
+        font: {
+          bold: true,
+          color: { rgb: "FFFFFF" }
+        },
+        fill: {
+          fgColor: { rgb: "4F81BD" }
+        },
+        alignment: {
+          horizontal: "center"
+        }
+      };
     }
 
     for (let row = 0; row <= filteredClientes.length; row++) {
-        for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-            const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-            if (!worksheet[cellAddress]) continue;
-            worksheet[cellAddress].s = {
-                alignment: {
-                    horizontal: "center"
-                }
-            };
-        }
+      for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+        if (!worksheet[cellAddress]) continue;
+        worksheet[cellAddress].s = {
+          alignment: {
+            horizontal: "center"
+          }
+        };
+      }
     }
 
     const columnWidths = [
-        { wch: 5 },
-        { wch: 30 },
-        { wch: 15 },
-        { wch: 20 },
-        { wch: 10 }
+      { wch: 5 },
+      { wch: 30 },
+      { wch: 15 },
+      { wch: 20 },
+      { wch: 10 }
     ];
     worksheet['!cols'] = columnWidths;
 
@@ -220,8 +223,9 @@ const Index_Clientes = () => {
           <TableHead>
             <TableRow>
               <TableCell />
-              <TableCell>Nombre</TableCell>
-              <TableCell>Teléfono</TableCell>
+              <TableCell>Foto</TableCell>
+              <TableCell>Cliente</TableCell>
+              <TableCell>Edad</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -232,6 +236,7 @@ const Index_Clientes = () => {
                   <TableCell>
                     <Skeleton variant="rectangular" width={40} height={40} />
                   </TableCell>
+                  <TableCell><Skeleton /></TableCell>
                   <TableCell><Skeleton /></TableCell>
                   <TableCell><Skeleton /></TableCell>
                   <TableCell>
@@ -283,5 +288,4 @@ const Index_Clientes = () => {
     </Container>
   );
 };
-
 export default Index_Clientes;
