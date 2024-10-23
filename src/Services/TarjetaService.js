@@ -18,7 +18,7 @@ const updateTarjeta = async (id, tarjetaData) => {
   try {
     const response = await axios.put(`${API_URL}/${id}`, tarjetaData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'application/json',
       },
     });
     console.log("Tarjeta actualizada:", response.data);
