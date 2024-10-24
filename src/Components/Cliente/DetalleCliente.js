@@ -9,6 +9,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
 import Cuentas from './Grids/Cuentas';
 import Tarjetas from './Grids/Tarjetas';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const DetalleCliente = () => {
   const { id } = useParams();
@@ -42,6 +44,11 @@ const DetalleCliente = () => {
     };
     if (id) fetchData();
   }, [id]);
+
+  const formatDate = (date) => {
+    if (!date) return 'No disponible';
+    return format(new Date(date), 'dd MMMM yyyy', { locale: es });
+  };
 
   const handleDeleteCliente = async () => {
     try {
@@ -102,7 +109,7 @@ const DetalleCliente = () => {
               <CardContent sx={{ flex: 1 }}>
                 <Typography variant="h6">Cliente: {cliente.nombre}</Typography>
                 <Typography variant="subtitle1">Teléfono: {cliente.telefono}</Typography>
-                <Typography variant="subtitle1">Fecha de Nacimiento: {cliente.nacimiento}</Typography>
+                <Typography variant="subtitle1">Fecha de Nacimiento: {formatDate(cliente.nacimiento)}</Typography>
                 <Typography variant="subtitle1">Edad: {cliente.edad} años</Typography>
               </CardContent>
               <FormControl sx={{ minWidth: 150, margin: 2 }} variant="standard">

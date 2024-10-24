@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import ClienteService from '../../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
-  Container, Typography, Table, TableBody, TableCell, TableContainer,
+  Container, Grid, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton,
-  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
+  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button,
+  TextField
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,19 +19,15 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 
 function Row({ cliente, onEdit, onDelete, onViewDetails }) {
   const [open, setOpen] = useState(false);
-
   return (
     <>
       <TableRow>
         <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton>
         </TableCell>
@@ -90,6 +87,7 @@ const Index_Clientes = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedClienteId, setSelectedClienteId] = useState(null);
+  const [filter, setFilter] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -122,7 +120,7 @@ const Index_Clientes = () => {
   const confirmDelete = async () => {
     try {
       await ClienteService.deleteCliente(selectedClienteId);
-      fetchClientes();
+      await fetchClientes();
       setSnackbarMessage('Cliente eliminado exitosamente.');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
@@ -139,8 +137,9 @@ const Index_Clientes = () => {
     navigate(`/clientes/detalle/${id}`);
   };
 
-  const handleCreateNew = () => {
-    navigate('/clientes/formulario');
+  const handleCreateNew = async () => {
+    await navigate('/clientes/formulario');
+    await fetchClientes();
   };
 
   const handleSnackbarClose = () => {
@@ -199,9 +198,17 @@ const Index_Clientes = () => {
     XLSX.writeFile(workbook, 'clientes.xlsx');
   };
 
+  const filteredClientes = clientes.filter(cliente => cliente.nombre.toLowerCase().includes(filter.toLowerCase()));
+  const groupedClientes = filteredClientes.reduce((acc, cliente) => {
+    const firstLetter = cliente.nombre.charAt(0).toUpperCase();
+    if (!acc[firstLetter]) acc[firstLetter] = [];
+    acc[firstLetter].push(cliente);
+    return acc;
+  }, {});
+
   return (
     <Container>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={-3}>
         <Typography variant="h4" gutterBottom>
           Clientes
         </Typography>
@@ -218,7 +225,19 @@ const Index_Clientes = () => {
           </Tooltip>
         </Box>
       </Box>
-      <TableContainer component={Paper}>
+      <Grid container justifyContent="flex-end" mb={2}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+          <AccountCircle sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+          <TextField
+            id="filter-by-name"
+            label="Buscar"
+            variant="standard"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </Box>
+      </Grid>
+      <TableContainer component={Paper} sx={{ marginTop: '0px' }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -245,15 +264,37 @@ const Index_Clientes = () => {
                 </TableRow>
               ))
             ) : (
-              clientes.map(cliente => (
-                <Row
-                  key={cliente.id}
-                  cliente={cliente}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onViewDetails={handleViewDetails}
-                />
-              ))
+              Object.keys(groupedClientes).length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} align="center">No se encontraron resultados</TableCell>
+                </TableRow>
+              ) : (
+                Object.keys(groupedClientes).map(letter => (
+                  <React.Fragment key={letter}>
+                    <Box
+                      style={{
+                        backgroundColor: '#f5f5f5',
+                        padding: '8px',
+                        fontWeight: 'bold',
+                        fontSize: '1.2em',
+                        marginTop: '16px',
+                        borderRadius: '4px'
+                      }}
+                    >
+                      {letter}
+                    </Box>
+                    {groupedClientes[letter].map(cliente => (
+                      <Row
+                        key={cliente.id}
+                        cliente={cliente}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onViewDetails={handleViewDetails}
+                      />
+                    ))}
+                  </React.Fragment>
+                ))
+              )
             )}
           </TableBody>
         </Table>
@@ -288,4 +329,5 @@ const Index_Clientes = () => {
     </Container>
   );
 };
+
 export default Index_Clientes;

@@ -5,49 +5,51 @@ import ClienteService from '../../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton,
+  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Skeleton,
   Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
 import * as XLSX from 'xlsx';
+import FiltroCuentas from './FiltroCuentas';
 
-function Row({ cuenta, onEdit, onDelete, onViewDetails, clientes }) {
-  const [open, setOpen] = useState(false);
-
+const Row = ({ cuenta, onEdit, onDelete, onViewDetails, clientes }) => {
+  const { saldo, moneda } = cuenta;
+  const formattedSaldo = moneda === 'NIO'
+    ? `C$${saldo.toFixed(2)}`
+    : moneda === 'USD'
+      ? `$${saldo.toFixed(2)}`
+      : `€${saldo.toFixed(2)}`;
   return (
-    <>
-      <TableRow>
-        <TableCell>{clientes.find(cliente => cliente.id === cuenta.clienteId)?.nombre || 'N/A'}</TableCell>
-        <TableCell>{cuenta.no_Cuenta}</TableCell>
-        <TableCell>{cuenta.tipo}</TableCell>
-        <TableCell>
-          <Tooltip title="Ver detalles">
-            <IconButton color="info" onClick={() => onViewDetails(cuenta.no_Cuenta)}>
-              <VisibilityIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton color="primary" onClick={() => onEdit(cuenta.no_Cuenta)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton color="secondary" onClick={() => onDelete(cuenta.no_Cuenta)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </TableCell>
-      </TableRow>
-    </>
+    <TableRow>
+      <TableCell>{clientes.find(cliente => cliente.id === cuenta.clienteId)?.nombre || 'N/A'}</TableCell>
+      <TableCell>{cuenta.no_Cuenta}</TableCell>
+      <TableCell>{cuenta.tipo}</TableCell>
+      <TableCell>{formattedSaldo}</TableCell>
+      <TableCell>
+        <Tooltip title="Ver detalles">
+          <IconButton color="info" onClick={() => onViewDetails(cuenta.no_Cuenta)}>
+            <VisibilityIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Editar">
+          <IconButton color="primary" onClick={() => onEdit(cuenta.no_Cuenta)}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Eliminar">
+          <IconButton color="secondary" onClick={() => onDelete(cuenta.no_Cuenta)}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
   );
-}
+};
 
 Row.propTypes = {
   cuenta: PropTypes.object.isRequired,
@@ -66,6 +68,7 @@ const Index_Cuentas = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCuentaId, setSelectedCuentaId] = useState(null);
+  const [filters, setFilters] = useState({ moneda: '', tipo: '', minSaldo: '', maxSaldo: '' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -76,9 +79,7 @@ const Index_Cuentas = () => {
   const fetchCuentas = async () => {
     try {
       const response = await CuentaService.getCuentas();
-      const cuentasOrdenadas = response.data.sort((a, b) =>
-        a.tipo.localeCompare(b.tipo)
-      );
+      const cuentasOrdenadas = response.data.sort((a, b) => a.tipo.localeCompare(b.tipo));
       setCuentas(cuentasOrdenadas);
       setLoading(false);
     } catch (error) {
@@ -185,6 +186,22 @@ const Index_Cuentas = () => {
     XLSX.writeFile(workbook, 'cuentas.xlsx');
   };
 
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const filteredCuentas = cuentas.filter(cuenta => {
+    const { moneda, tipo, minSaldo, maxSaldo } = filters;
+    const saldo = cuenta.saldo || 0;
+
+    const isMonedaMatch = !moneda || cuenta.moneda === moneda;
+    const isTipoMatch = !tipo || cuenta.tipo === tipo;
+    const isMinSaldoMatch = minSaldo === '' || saldo >= minSaldo;
+    const isMaxSaldoMatch = maxSaldo === '' || saldo <= maxSaldo;
+
+    return isMonedaMatch && isTipoMatch && isMinSaldoMatch && isMaxSaldoMatch;
+  });
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -204,6 +221,7 @@ const Index_Cuentas = () => {
           </Tooltip>
         </Box>
       </Box>
+      <FiltroCuentas filters={filters} onFilterChange={handleFilterChange} />
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -211,6 +229,7 @@ const Index_Cuentas = () => {
               <TableCell>Cliente</TableCell>
               <TableCell>Número de Cuenta</TableCell>
               <TableCell>Tipo de Cuenta</TableCell>
+              <TableCell>Saldo</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
@@ -229,7 +248,7 @@ const Index_Cuentas = () => {
                 </TableRow>
               ))
             ) : (
-              cuentas.map(cuenta => (
+              filteredCuentas.map(cuenta => (
                 <Row
                   key={cuenta.no_Cuenta}
                   cuenta={cuenta}
@@ -273,4 +292,5 @@ const Index_Cuentas = () => {
     </Container>
   );
 };
+
 export default Index_Cuentas;
