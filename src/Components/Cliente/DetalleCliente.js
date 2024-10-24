@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ClienteService from '../../Services/ClienteService';
 import CuentaService from '../../Services/CuentaService';
 import TarjetaService from '../../Services/TarjetaService';
-import { Box, Typography, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Alert, Select, MenuItem, FormControl, InputLabel, Card, CardContent, CardMedia } from '@mui/material';
+import { Box, Typography, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Snackbar, Alert, Select, MenuItem, FormControl, InputLabel, Card, CardContent, CardMedia, Skeleton } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
@@ -19,11 +19,12 @@ const DetalleCliente = () => {
   const [selectedCuenta, setSelectedCuenta] = useState('Todas');
   const [openDialog, setOpenDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [clientes, setClientes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
         const clienteResponse = await ClienteService.getClienteById(id);
         setCliente(clienteResponse.data);
         const cuentasResponse = await CuentaService.getCuentas();
@@ -32,11 +33,11 @@ const DetalleCliente = () => {
         setCuentas(cuentasFiltradas);
         const tarjetasResponse = await TarjetaService.getTarjetas(id);
         setTarjetas(tarjetasResponse.data);
-        
-        const response = await ClienteService.getClientes();
-        setClientes(response.data);
+        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
         setSnackbar({ open: true, message: 'Error al obtener los datos del cliente', severity: 'error' });
+      } finally {
+        setLoading(false);
       }
     };
     if (id) fetchData();
@@ -61,7 +62,26 @@ const DetalleCliente = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  if (!cliente) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <Box sx={{ padding: "2rem", marginLeft: 6, marginTop: -6 }}>
+        <Box display="flex" alignItems="center">
+          <Skeleton variant="circular" height={130} width={130} sx={{ marginRight: 2, marginLeft: 2 }} />
+          <Skeleton variant="rectangular" height={150} width="calc(100% - 48px)" />
+        </Box>
+        <Grid container spacing={2} sx={{ marginTop: 3 }}>
+          <Grid item xs={12} sm={6}>
+            <Skeleton variant="rectangular" height={208} />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Skeleton variant="rectangular" height={218} />
+          </Grid>
+        </Grid>
+      </Box>
+    );
+  }
+
+  if (!cliente) return <div>No se encontró el cliente.</div>;
 
   const filteredCuentas = selectedCuenta === "Todas" ? cuentas : cuentas.filter(cuenta => cuenta.no_Cuenta === selectedCuenta);
   const filteredTarjetas = selectedCuenta === "Todas" ? tarjetas : tarjetas.filter(tarjeta => tarjeta.no_Cuenta === selectedCuenta);
@@ -70,7 +90,6 @@ const DetalleCliente = () => {
     <Box sx={{ padding: "2rem", marginLeft: 6, marginTop: -6 }}>
       <Box sx={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
         <Grid container spacing={3}>
-          {/* Solo mostrar el cliente seleccionado */}
           <Grid item xs={12} key={cliente.id}>
             <Card sx={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'space-between' }}>
               <CardMedia
