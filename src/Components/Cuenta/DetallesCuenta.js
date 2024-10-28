@@ -17,6 +17,8 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const DetallesCuenta = () => {
   const { id } = useParams();
@@ -66,6 +68,10 @@ const DetallesCuenta = () => {
         setMensajeError('Hubo un error al eliminar la cuenta. Por favor, inténtalo de nuevo.');
       }
     }
+  };
+  const formatDate = (date) => {
+    if (!date) return 'No disponible';
+    return format(new Date(date), 'dd MMMM yyyy', { locale: es });
   };
 
   if (mensajeError) {
@@ -218,6 +224,7 @@ const DetallesCuenta = () => {
             </Typography>
             <Typography variant="body1">Moneda: {obtenerNombreMoneda(cuenta.moneda)}</Typography>
             <Typography variant="body1">Beneficiario: {cuenta.beneficiarios || 'N/A'}</Typography>
+            <Typography variant="body1">Apertura de la cuenta: {formatDate(cuenta.aperturacuenta)}</Typography>
           </>
         ) : (
           <>

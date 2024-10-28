@@ -110,6 +110,9 @@ const DetalleTarjeta = () => {
           <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
             <strong>Fecha de vencimiento:</strong> {formatDate(tarjeta.vencimiento)}
           </Typography>
+          <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
+            <strong>Emisión de la tarjeta:</strong> {formatDate(tarjeta.emisiontarjeta)}
+          </Typography>
           <Divider sx={{ my: 2 }} />
         </CardContent>
       </Card>
