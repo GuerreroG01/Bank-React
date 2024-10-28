@@ -6,7 +6,8 @@ import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, IconButton, Tooltip, Box, Skeleton,
-  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
+  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button,
+  Pagination
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -16,6 +17,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
 import * as XLSX from 'xlsx';
 import FiltroCuentas from './FiltroCuentas';
+import { useTheme } from '@mui/material/styles';
 
 const Row = ({ cuenta, onEdit, onDelete, onViewDetails, clientes }) => {
   const { saldo, moneda } = cuenta;
@@ -60,6 +62,7 @@ Row.propTypes = {
 };
 
 const Index_Cuentas = () => {
+  const theme = useTheme();
   const [cuentas, setCuentas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +72,8 @@ const Index_Cuentas = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCuentaId, setSelectedCuentaId] = useState(null);
   const [filters, setFilters] = useState({ moneda: '', tipo: '', minSaldo: '', maxSaldo: '' });
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(5);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -202,6 +207,12 @@ const Index_Cuentas = () => {
     return isMonedaMatch && isTipoMatch && isMinSaldoMatch && isMaxSaldoMatch;
   });
 
+  const handleChangePage = (event, value) => {
+    setPage(value);
+  };
+
+  const paginatedCuentas = filteredCuentas.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -248,7 +259,7 @@ const Index_Cuentas = () => {
                 </TableRow>
               ))
             ) : (
-              filteredCuentas.map(cuenta => (
+              paginatedCuentas.map(cuenta => (
                 <Row
                   key={cuenta.no_Cuenta}
                   cuenta={cuenta}
@@ -262,6 +273,28 @@ const Index_Cuentas = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box display="flex" justifyContent="flex-end" sx={{ mt: 2 }}>
+        <Pagination
+          count={Math.ceil(filteredCuentas.length / rowsPerPage)}
+          page={page}
+          onChange={handleChangePage}
+          shape="rounded"
+          color="primary"
+          sx={{
+            bgcolor: theme.palette.background.default,
+            '& .MuiPaginationItem-root': {
+              color: 'black',
+            },
+            '& .MuiPaginationItem-ellipsis': {
+              color: 'black',
+            },
+            '& .Mui-selected': {
+              bgcolor: '#81c784',
+              color: 'white',
+            },
+          }}
+        />
+      </Box>
       <Dialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
