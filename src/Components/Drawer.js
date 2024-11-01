@@ -20,6 +20,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import HomeIcon from '@mui/icons-material/Home';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined';
+import ClearAllOutlinedIcon from '@mui/icons-material/ClearAllOutlined';
 import { useNavigate } from 'react-router-dom';
 
 import BankLogo from '../assets/Images/Bank_Icon2.png';
@@ -229,6 +231,48 @@ export default function MiniDrawer() {
                 <CreditCardIcon />
               </ListItemIcon>
               <ListItemText primary="Tarjetas" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem key="Transferir" disablePadding sx={{ display: 'block' }}>
+            <ListItemButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? 'initial' : 'center',
+                px: 2.5,
+              }}
+              onClick={() => handleNavigation('/transferir')}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : 'auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <SwapHorizOutlinedIcon/>
+              </ListItemIcon>
+              <ListItemText primary="Transferir" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem key="Transferencias" disablePadding sx={{ display: 'block' }}>
+            <ListItemButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? 'initial' : 'center',
+                px: 2.5,
+              }}
+              onClick={() => handleNavigation('/transferencias')}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : 'auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <ClearAllOutlinedIcon/>
+              </ListItemIcon>
+              <ListItemText primary="Transferencias" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
           </ListItem>
         </List>

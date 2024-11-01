@@ -14,6 +14,8 @@ import DetalleTarjeta from './Components/Tarjeta/DetalleTarjeta';
 import IndexCuentas from './Components/Cuenta/Index_Cuentas';
 import FormularioCuentas from './Components/Cuenta/FormularioCuenta';
 import DetalleCuenta from './Pages/Cuentas/DetalleAccountPage';
+import Transferir from './Pages/Transferencia/TransferenciaPage';
+import Transferencias from './Pages/Transferencia/Index';
 
 
 const router = createBrowserRouter([
@@ -69,6 +71,14 @@ const router = createBrowserRouter([
       {
         path: '/cuentas/detalle/:id',
         element: <DetalleCuenta />
+      },
+      {
+        path: '/transferir',
+        element: <Transferir />
+      },
+      {
+        path: '/transferencias',
+        element: <Transferencias />
       }
     ]
   }
