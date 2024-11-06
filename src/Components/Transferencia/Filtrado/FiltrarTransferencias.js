@@ -35,27 +35,32 @@ const Android12Switch = styled(Switch)(({ theme }) => ({
   },
 }));
 
-const FiltrarTransferencias = ({ onFiltrar, numeroCuenta }) => {
+const FiltrarTransferencias = ({ 
+  onFiltrar, 
+  numeroCuenta 
+}) => {
   const [localCuenta, setLocalCuenta] = useState(numeroCuenta);
-  const [isFilterEnabled, setIsFilterEnabled] = useState(false); // No activar el filtro inicialmente
+  const [isFilterEnabled, setIsFilterEnabled] = useState(false);
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
 
-  // Actualizar el estado de la cuenta al recibir un cambio en el prop
   useEffect(() => {
     setLocalCuenta(numeroCuenta);
   }, [numeroCuenta]);
 
-  // Manejar el cambio del switch
   const handleSwitchChange = (e) => {
     const isChecked = e.target.checked;
     setIsFilterEnabled(isChecked);
 
     if (!isChecked) {
       setLocalCuenta('');
-      onFiltrar('', '', '');  // Limpiar filtros de cuenta y fechas
-    } else if (localCuenta.length === 10) {
-      onFiltrar(localCuenta, fechaInicio, fechaFin); // Filtros de cuenta y fechas
+      setFechaInicio('');
+      setFechaFin('');
+      onFiltrar('', '', '');
+    } else {
+      if (localCuenta.length === 10) {
+        onFiltrar(localCuenta, fechaInicio, fechaFin);
+      }
     }
   };
 
@@ -64,9 +69,9 @@ const FiltrarTransferencias = ({ onFiltrar, numeroCuenta }) => {
     if (/^\d*$/.test(cuenta) && cuenta.length <= 10) {
       setLocalCuenta(cuenta);
       if (cuenta.length === 10) {
-        onFiltrar(cuenta, fechaInicio, fechaFin); // Filtros de cuenta y fechas
+        onFiltrar(cuenta, fechaInicio, fechaFin);
       } else if (cuenta.length === 0) {
-        onFiltrar('', '', '');  // Limpiar filtros
+        onFiltrar('', '', '');
       }
     }
   };
@@ -74,13 +79,13 @@ const FiltrarTransferencias = ({ onFiltrar, numeroCuenta }) => {
   const handleFechaInicioChange = (e) => {
     const fecha = e.target.value;
     setFechaInicio(fecha);
-    onFiltrar(localCuenta, fecha, fechaFin); // Actualizar filtros de fechas
+    onFiltrar(localCuenta, fecha, fechaFin);
   };
 
   const handleFechaFinChange = (e) => {
     const fecha = e.target.value;
     setFechaFin(fecha);
-    onFiltrar(localCuenta, fechaInicio, fecha); // Actualizar filtros de fechas
+    onFiltrar(localCuenta, fechaInicio, fecha);
   };
 
   return (

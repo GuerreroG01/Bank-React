@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Grid, Skeleton, Alert } from '@mui/material';
 import TransferenciaService from '../../Services/TransferenciaService';
 import FiltrarTransferencias from './Filtrado/FiltrarTransferencias';
@@ -10,6 +10,7 @@ const Transferencias = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [numeroCuenta, setNumeroCuenta] = useState('');
+  const [expandedPanel, setExpandedPanel] = useState(null);
 
   const fetchTransferencias = async () => {
     setLoading(true);
@@ -28,6 +29,30 @@ const Transferencias = () => {
   useEffect(() => {
     fetchTransferencias();
   }, []);
+
+  useEffect(() => {
+    if (transferencias.length > 0) {
+      const groupedByMonthYear = groupByMonthYear(transferencias);
+      const firstPanel = Object.keys(groupedByMonthYear)[0];
+      setExpandedPanel(firstPanel);
+    } else {
+      setExpandedPanel(null);
+    }
+  }, [transferencias]);
+
+  const groupByMonthYear = (transferencias) => {
+    return transferencias.reduce((acc, transferencia) => {
+      const fecha = new Date(transferencia.fechaTransferencia);
+      const mesAnio = `${fecha.getMonth() + 1}-${fecha.getFullYear()}`;
+
+      if (!acc[mesAnio]) {
+        acc[mesAnio] = [];
+      }
+      acc[mesAnio].push(transferencia);
+
+      return acc;
+    }, {});
+  };
 
   const handleFiltrar = (cuenta, fechaInicio, fechaFin) => {
     setNumeroCuenta(cuenta);
@@ -57,7 +82,7 @@ const Transferencias = () => {
     }
   
     setTransferencias(transferenciasFiltradas);
-  };  
+  };
 
   const handleLimpiarFiltro = () => {
     setNumeroCuenta('');
@@ -111,6 +136,8 @@ const Transferencias = () => {
         transferencias={transferencias}
         numeroCuenta={numeroCuenta}
         onLimpiarFiltro={handleLimpiarFiltro}
+        expandedPanel={expandedPanel}
+        setExpandedPanel={setExpandedPanel}
       />
     </Box>
   );
