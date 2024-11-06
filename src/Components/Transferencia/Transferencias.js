@@ -1,49 +1,102 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Paper,
-  CircularProgress,
-} from '@mui/material';
+import { Box, Typography, Grid, Skeleton, Alert } from '@mui/material';
 import TransferenciaService from '../../Services/TransferenciaService';
-import { AccountBalance } from '@mui/icons-material';
-import CurrencyExchangeOutlinedIcon from '@mui/icons-material/CurrencyExchangeOutlined';
+import FiltrarTransferencias from './Filtrado/FiltrarTransferencias';
+import TransferenciaResultados from './Filtrado/TransferenciaResultados';
 
 const Transferencias = () => {
   const [transferencias, setTransferencias] = useState([]);
+  const [allTransferencias, setAllTransferencias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [numeroCuenta, setNumeroCuenta] = useState('');
+
+  const fetchTransferencias = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await TransferenciaService.getTransferencias();
+      setTransferencias(response.data);
+      setAllTransferencias(response.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchTransferencias = async () => {
-      try {
-        const response = await TransferenciaService.getTransferencias();
-        setTransferencias(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTransferencias();
   }, []);
 
+  const handleFiltrar = (cuenta, fechaInicio, fechaFin) => {
+    setNumeroCuenta(cuenta);
+    let transferenciasFiltradas = allTransferencias;
+  
+    if (cuenta.trim().length > 0) {
+      const cuentaNormalizada = parseInt(cuenta.trim(), 10);
+      transferenciasFiltradas = transferenciasFiltradas.filter((transferencia) => {
+        const cuentaOrigen = Number(transferencia.cuentaOrigenId);
+        const cuentaDestino = Number(transferencia.cuentaDestinoId);
+        return cuentaOrigen === cuentaNormalizada || cuentaDestino === cuentaNormalizada;
+      });
+    }
+  
+    if (fechaInicio) {
+      transferenciasFiltradas = transferenciasFiltradas.filter((transferencia) => {
+        const fechaTransferencia = new Date(transferencia.fechaTransferencia);
+        return fechaTransferencia >= new Date(fechaInicio);
+      });
+    }
+    
+    if (fechaFin) {
+      transferenciasFiltradas = transferenciasFiltradas.filter((transferencia) => {
+        const fechaTransferencia = new Date(transferencia.fechaTransferencia);
+        return fechaTransferencia <= new Date(fechaFin);
+      });
+    }
+  
+    setTransferencias(transferenciasFiltradas);
+  };  
+
+  const handleLimpiarFiltro = () => {
+    setNumeroCuenta('');
+    setTransferencias(allTransferencias);
+  };
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-        <CircularProgress />
+      <Box display="flex" justifyContent="flex-start" alignItems="center" height="100vh" paddingLeft={4}>
+        <Grid container spacing={3} sx={{ marginLeft: '50px', marginTop: '-153px' }}>
+          {[...Array(3)].map((_, index) => (
+            <Grid item xs={12} sm={4} key={index}>
+              <Skeleton variant="rectangular" width="100%" height={150} />
+              <Skeleton width="80%" />
+              <Skeleton width="60%" />
+            </Grid>
+          ))}
+        </Grid>
       </Box>
     );
   }
 
   if (error) {
     return (
-      <Box>
-        <Typography variant="h6" color="error">
-          Error: {error}
-        </Typography>
+      <Box 
+        sx={{ 
+          width: '100%', 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'flex-start',
+          minHeight: '100vh',
+          padding: 2 
+        }}
+      >
+        <Alert severity="error" sx={{ fontSize: '1rem', fontWeight: '500', width: '80%' }}>
+          <Typography variant="body1">
+            <strong>Error:</strong> {error}
+          </Typography>
+        </Alert>
       </Box>
     );
   }
@@ -53,37 +106,12 @@ const Transferencias = () => {
       <Typography variant="h4" gutterBottom>
         Transferencias
       </Typography>
-      <Grid container spacing={3}>
-        {transferencias.map((transferencia) => (
-          <Grid item xs={12} sm={6} md={4} key={transferencia.id}>
-            <Paper elevation={3} sx={{ padding: 2, borderRadius: 2 }}>
-              <Box display="flex" alignItems="center" mb={1}>
-                <CurrencyExchangeOutlinedIcon sx={{ width: 56, height: 56, mr: 2 }} />
-                <Typography variant="h6">Transferencia #{transferencia.id}</Typography>
-              </Box>
-              <Box display="flex" justifyContent="space-between">
-                <Typography variant="body1" color="textSecondary">
-                  <AccountBalance /> Cuenta Origen: {transferencia.cuentaOrigenId}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  <AccountBalance /> Cuenta Destino: {transferencia.cuentaDestinoId}
-                </Typography>
-              </Box>
-              <Box display="flex" justifyContent="space-between" mt={1}>
-                <Typography variant="h6" color={transferencia.monto > 0 ? 'green' : 'red'}>
-                  Monto: {transferencia.monto} {transferencia.moneda}
-                </Typography>
-                <Typography variant="body1" color="textSecondary">
-                  {new Date(transferencia.fechaTransferencia).toLocaleDateString()}
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="textSecondary" mt={1}>
-                {transferencia.descripcion || 'Sin descripción'}
-              </Typography>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
+      <FiltrarTransferencias onFiltrar={handleFiltrar} numeroCuenta={numeroCuenta} />
+      <TransferenciaResultados 
+        transferencias={transferencias}
+        numeroCuenta={numeroCuenta}
+        onLimpiarFiltro={handleLimpiarFiltro}
+      />
     </Box>
   );
 };
