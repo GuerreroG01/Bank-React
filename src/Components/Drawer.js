@@ -97,7 +97,15 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 export default function MiniDrawer() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -110,6 +118,12 @@ export default function MiniDrawer() {
   const handleNavigation = (path) => {
     navigate(path);
     setOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    navigate('/'); 
   };
 
   return (
@@ -135,12 +149,20 @@ export default function MiniDrawer() {
               BancoNet
             </Typography>
           </Box>
-          <Button color="inherit" onClick={() => handleNavigation('/auth/iniciar_sesion')}>
-            Iniciar sesión
-          </Button>
-          <Button color="inherit" onClick={() => handleNavigation('/auth/registrarse')}>
-            Registrarse
-          </Button>
+          {!isAuthenticated ? (
+            <>
+              <Button color="inherit" onClick={() => handleNavigation('/auth/iniciar_sesion')}>
+                Iniciar sesión
+              </Button>
+              <Button color="inherit" onClick={() => handleNavigation('/auth/registrarse')}>
+                Registrarse
+              </Button>
+            </>
+          ) : (
+            <Button color="inherit" onClick={handleLogout}>
+              Cerrar sesión
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
@@ -256,7 +278,7 @@ export default function MiniDrawer() {
                   justifyContent: 'center',
                 }}
               >
-                <SwapHorizOutlinedIcon/>
+                <SwapHorizOutlinedIcon />
               </ListItemIcon>
               <ListItemText primary="Transferir" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
@@ -277,7 +299,7 @@ export default function MiniDrawer() {
                   justifyContent: 'center',
                 }}
               >
-                <ClearAllOutlinedIcon/>
+                <ClearAllOutlinedIcon />
               </ListItemIcon>
               <ListItemText primary="Transferencias" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
@@ -286,7 +308,6 @@ export default function MiniDrawer() {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <DrawerHeader />
-        {/* Pendiente */}
       </Box>
     </Box>
   );

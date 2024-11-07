@@ -64,9 +64,9 @@ const login = async (email, password) => {
   }
 };
 
-const logout = () => {
+const logout = async () => {
   try {
-    const response = axios.post(API_URL + "logout", {
+    const response = await axios.post(API_URL + "logout", {
       headers: {
         "Content-Type": "application/json",
       },

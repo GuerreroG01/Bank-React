@@ -1,4 +1,3 @@
-// src/components/Login.js
 import React, { useState } from "react";
 import {
   Box,
@@ -8,18 +7,18 @@ import {
   Typography,
   Alert,
 } from "@mui/material";
-import {useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import AuthService from "../../Services/AuthService";
 
 const Login = () => {
   const navigate = useNavigate();
-  const {token} = useParams();
+  const { token } = useParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
     setSuccessMessage("");
@@ -27,27 +26,28 @@ const Login = () => {
     if (!email) {
       setErrors({ ...errors, email: "El email es obligatorio" });
       return;
-    }
-    else if (!password) {
+    } else if (!password) {
       setErrors({ ...errors, password: "La contraseña es obligatoria" });
       return;
     }
 
-    await AuthService.login(email, password)
-    .then(response => {
+    try {
+      const response = await AuthService.login(email, password);
       console.log('Inicio de sesión exitoso:', response.data);
-      setSuccessMessage("Inicio de sesión exitoso");
+
       localStorage.setItem("token", response.data.token);
+
+      setSuccessMessage("Inicio de sesión exitoso");
       setTimeout(() => {
         navigate('/');
-      }, 2000);
-    })
-    .catch(error => {
+        window.location.reload();
+      }, 1500);
+
+    } catch (error) {
       console.error('Error iniciando sesión:', error);
       setErrors({ summary: "Error al iniciar sesión" });
-    });
+    }
   };
-
 
   return (
     <Container maxWidth="md">
@@ -66,10 +66,13 @@ const Login = () => {
           Iniciar sesión en tu cuenta
         </Typography>
         <hr />
-        {token === 'no_token' && <Alert severity="error">Debes iniciar sesión para acceder a esa página</Alert>}
+        {token === 'no_token' && (
+          <Alert severity="error">Debes iniciar sesión para acceder a esa página</Alert>
+        )}
         <hr />
         {errors.summary && <Alert severity="error">{errors.summary}</Alert>}
         {successMessage && <Alert severity="success">{successMessage}</Alert>}
+        
         <TextField
           margin="normal"
           required
@@ -79,7 +82,7 @@ const Login = () => {
           autoComplete="username"
           autoFocus
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           error={!!errors.email}
           helperText={errors.email}
           sx={{ width: "50%" }}
@@ -93,7 +96,7 @@ const Login = () => {
           id="password"
           autoComplete="current-password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           error={!!errors.password}
           helperText={errors.password}
           sx={{ width: "50%" }}
@@ -109,7 +112,7 @@ const Login = () => {
             type="submit"
             variant="contained"
             color="primary"
-            // sx={{ width: "20%" }}
+            //sx={{ width: "20%" }}
           >
             Iniciar Sesión
           </Button>
