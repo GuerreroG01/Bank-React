@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TarjetaService from "../../Services/TarjetaService";
 import CuentaService from "../../Services/CuentaService";
+import ClienteService from '../../Services/ClienteService';
 import {
   Box,
   Typography,
@@ -23,35 +24,54 @@ import { FaCcVisa } from "react-icons/fa";
 
 const FormularioTarjeta = () => {
   const { id } = useParams();
+  const [clientes, setClientes] = useState([]);
   const navigate = useNavigate();
   const [tarjeta, setTarjeta] = useState({
-    tipo_tarjeta: "",
-    marca_tarjeta: "",
-    no_tarjeta: "",
-    no_cuenta: "",
-    fecha_vencimiento: "",
-    codigo_seguridad: "",
-    limite_credito: "",
+    tipo_Tarjeta: "",
+    marca_Tarjeta: "",
+    no_Tarjeta: "",
+    no_Cuenta: "",
+    vencimiento: "",
+    codigo_Seguridad: "",
+    limite_Credito: "",
   });
 
   const [cuentas, setCuenta] = useState([]);
   const [mensajeError, setMensajeError] = useState("");
   const [exitocreacion, setExitocreacion] = useState("");
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
+
+  const generarNumeroTarjeta = () => {
+    let numero = "";
+    for (let i = 0; i < 16; i++) {
+      numero += Math.floor(Math.random() * 10).toString();
+    }
+    return numero;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const clientesResponse = await ClienteService.getClientes();
+        setClientes(clientesResponse.data);
         const cuentasResponse = await CuentaService.getCuentas();
         setCuenta(cuentasResponse.data);
-        console.log(cuentasResponse.data);
         if (id) {
-          TarjetaService.getTarjetasById(id)
-            .then(response => {
-              setTarjeta(response.data);
-            })
-            .catch(error => {
-              console.error("Error fetching card:", error);
-            });
+          const response = await TarjetaService.getTarjetasById(id);
+          setTarjeta(prev => ({
+            ...response.data,
+            no_Cuenta: response.data.no_Cuenta || "",
+          }));
+        } else {
+          setTarjeta({
+            tipo_Tarjeta: "",
+            marca_Tarjeta: "",
+            no_Tarjeta: generarNumeroTarjeta(),
+            no_Cuenta: "",
+            vencimiento: "",
+            codigo_Seguridad: "",
+            limite_Credito: "",
+          });
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -61,37 +81,30 @@ const FormularioTarjeta = () => {
   }, [id]);
 
   const handleChange = e => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setTarjeta(prevState => ({
       ...prevState,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
-
-    if (name === "no_cuenta") {
-      const cuentaSeleccionada = cuentas.find(
-        cuenta => cuenta.no_cuenta === value
-      );
-      setTarjeta(prevState => ({
-        ...prevState,
-        no_cuenta: value,
-      }));
-    }
   };
 
   const handleSubmit = async e => {
     e.preventDefault();
 
     if (
-      !tarjeta.tipo_tarjeta ||
-      !tarjeta.marca_tarjeta ||
-      !tarjeta.no_tarjeta ||
-      !tarjeta.no_cuenta ||
-      !tarjeta.codigo_seguridad ||
-      !tarjeta.fecha_vencimiento ||
-      !tarjeta.limite_credito
+      !tarjeta.tipo_Tarjeta ||
+      !tarjeta.marca_Tarjeta ||
+      !tarjeta.no_Cuenta ||
+      !tarjeta.codigo_Seguridad ||
+      !tarjeta.vencimiento ||
+      !tarjeta.limite_Credito
     ) {
       alert("Por favor, completa todos los campos obligatorios.");
       return;
+    }
+
+    if (!id && !tarjeta.no_Tarjeta) {
+      tarjeta.no_Tarjeta = generarNumeroTarjeta();
     }
 
     try {
@@ -102,16 +115,18 @@ const FormularioTarjeta = () => {
         await TarjetaService.createTarjeta(tarjeta);
         setExitocreacion("Tarjeta creada exitosamente");
       }
-
-      // setTimeout(() => {
-      //   setExitocreacion("");
-      //   navigate("/tarjetas");
-      // }, 2000);
+      setMostrarAlerta(true);
+      setTimeout(() => {
+        setMostrarAlerta(false);
+        navigate('/tarjetas');
+      }, 1500);
     } catch (error) {
       console.error("Error al guardar tarjeta:", error);
-      setMensajeError(
-        "Hubo un error al guardar la tarjeta. Por favor, inténtalo de nuevo."
-      );
+      setMensajeError("Hubo un error al guardar la tarjeta. Por favor, inténtalo de nuevo.");
+      setMostrarAlerta(true);
+      setTimeout(() => {
+        setMostrarAlerta(false);
+      }, 1500);
     }
   };
 
@@ -133,40 +148,51 @@ const FormularioTarjeta = () => {
       <form onSubmit={handleSubmit}>
         <FormGroup>
           <FormControl margin="normal" fullWidth>
-            <InputLabel id="cuenta-label">Cuenta</InputLabel>
-            <Select
-              labelId="cuenta-label"
-              id="cuenta-select"
-              name="no_cuenta"
-              value={tarjeta.no_cuenta}
+            <TextField
+              label="No. tarjeta"
+              name="no_tarjeta"
+              value={tarjeta.no_Tarjeta}
               onChange={handleChange}
+              variant="outlined"
               required
-              label="Cuenta"
-            >
-              {cuentas.length === 0 ? (
-                <MenuItem disabled>No hay cuentas disponibles</MenuItem>
-              ) : (
-                cuentas.map(cuenta => (
-                  <MenuItem key={cuenta.no_Cuenta} value={cuenta.no_Cuenta}>
-                    {cuenta.beneficiarios}
-                  </MenuItem>
-                ))
-              )}
-            </Select>
-            {cuentas.length === 0 && (
-              <Typography color="error" variant="body2" sx={{ mt: 1 }}>
-                No hay cuentas disponibles para seleccionar.
-              </Typography>
-            )}
+              type="text"
+              disabled
+            />
           </FormControl>
-
+          <FormControl fullWidth variant="outlined" margin="normal">
+            <InputLabel id="cliente-label">Cliente</InputLabel>
+            <Select
+                labelId="cliente-label"
+                id="cliente-select"
+                name="no_Cuenta"
+                value={tarjeta.no_Cuenta || ""}
+                onChange={handleChange}
+                required
+                label="Cliente"
+            >
+                {clientes.length === 0 ? (
+                    <MenuItem disabled>No hay clientes disponibles</MenuItem>
+                ) : (
+                    clientes.map(cliente => (
+                        <MenuItem key={cliente.id} value={cliente.cuentas.length > 0 ? cliente.cuentas[0].no_Cuenta : ''}>
+                            {cliente.cuentas.length > 0 ? cliente.nombre : `${cliente.nombre} (Sin cuentas)`}
+                        </MenuItem>
+                    ))
+                )}
+            </Select>
+            {clientes.length === 0 && (
+                <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                    No hay clientes disponibles para seleccionar.
+                </Typography>
+            )}
+        </FormControl>
           <FormControl sx={{ width: "50%" }} margin="normal">
             <InputLabel id="tipo_tarjeta">Tipo de tarjeta</InputLabel>
             <Select
               labelId="tipo_tarjeta"
               id="tipo_tarjeta_select"
-              value={tarjeta.tipo_tarjeta || ""}
-              name="tipo_tarjeta"
+              value={tarjeta.tipo_Tarjeta || ""}
+              name="tipo_Tarjeta"
               label="Tipo de tarjeta"
               onChange={handleChange}
               required
@@ -178,14 +204,13 @@ const FormularioTarjeta = () => {
               <MenuItem value={"Débito"}>Débito</MenuItem>
             </Select>
           </FormControl>
-
           <FormControl sx={{ width: "50%" }} margin="normal">
-            <InputLabel id="marca_tarjeta">Marca de la tarjeta</InputLabel>
+            <InputLabel id="marca_Tarjeta">Marca de la tarjeta</InputLabel>
             <Select
-              labelId="marca_tarjeta"
+              labelId="marca_Tarjeta"
               id="marca_tarjeta_select"
-              value={tarjeta.marca_tarjeta || ""}
-              name="marca_tarjeta"
+              value={tarjeta.marca_Tarjeta || ""}
+              name="marca_Tarjeta"
               label="Marca de la tarjeta"
               onChange={handleChange}
               required
@@ -193,7 +218,6 @@ const FormularioTarjeta = () => {
               <MenuItem value="">
                 <em>Seleccione una marca:</em>
               </MenuItem>
-
               <MenuItem value={"mastercard"}>
                 <Box
                   display="flex"
@@ -207,7 +231,6 @@ const FormularioTarjeta = () => {
                   </ListItemIcon>
                 </Box>
               </MenuItem>
-
               <MenuItem value={"visa"}>
                 <Box
                   display="flex"
@@ -221,7 +244,6 @@ const FormularioTarjeta = () => {
                   </ListItemIcon>
                 </Box>
               </MenuItem>
-
               <MenuItem value={"amex"}>
                 <Box
                   display="flex"
@@ -237,51 +259,34 @@ const FormularioTarjeta = () => {
               </MenuItem>
             </Select>
           </FormControl>
-
-          <FormControl margin="normal" fullWidth>
-            <TextField
-              label="No. tarjeta"
-              name="no_tarjeta"
-              value={tarjeta.no_tarjeta}
-              onChange={handleChange}
-              variant="outlined"
-              required
-              type="text"
-            />
-          </FormControl>
-
           <FormControl margin="normal" fullWidth>
             <TextField
               label="Código de seguridad"
-              name="codigo_seguridad"
-              value={tarjeta.codigo_seguridad}
+              name="codigo_Seguridad"
+              value={tarjeta.codigo_Seguridad}
               onChange={handleChange}
               variant="outlined"
               required
-              type="number"
             />
           </FormControl>
-
           <FormControl margin="normal" fullWidth>
             <TextField
               label="Límite de crédito"
-              name="limite_credito"
-              value={tarjeta.limite_credito}
+              name="limite_Credito"
+              value={tarjeta.limite_Credito}
               onChange={handleChange}
               variant="outlined"
               required
-              type="number"
             />
           </FormControl>
-
           <FormControl margin="normal" fullWidth>
             <TextField
               label="Fecha de vencimiento"
-              name="fecha_vencimiento"
+              name="vencimiento"
               type="date"
               value={
-                tarjeta.fecha_vencimiento
-                  ? new Date(tarjeta.fecha_vencimiento)
+                tarjeta.vencimiento
+                  ? new Date(tarjeta.vencimiento).toISOString().split("T")[0]
                   : ""
               }
               onChange={handleChange}
@@ -289,7 +294,6 @@ const FormularioTarjeta = () => {
               InputLabelProps={{ shrink: true }}
             />
           </FormControl>
-
           <Button
             type="submit"
             variant="contained"
@@ -308,7 +312,7 @@ const FormularioTarjeta = () => {
           </Button>
         </FormGroup>
       </form>
-      {exitocreacion && (
+      {mostrarAlerta && exitocreacion && (
         <Alert
           severity="success"
           sx={{
@@ -323,7 +327,7 @@ const FormularioTarjeta = () => {
           {exitocreacion}
         </Alert>
       )}
-      {mensajeError && (
+      {mostrarAlerta && mensajeError && (
         <Alert
           severity="error"
           sx={{
@@ -341,5 +345,4 @@ const FormularioTarjeta = () => {
     </Box>
   );
 };
-
 export default FormularioTarjeta;

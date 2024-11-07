@@ -66,6 +66,25 @@ const createCuenta = async (cuentaData) => {
     throw error;
   }
 };
+const modificarSaldo = async (noCuenta, monto) => {
+  const saldoDto = {
+    NoCuenta: Number(noCuenta),
+    Monto: Math.floor(parseFloat(monto)),
+  };
+  console.log('Saldo DTO a enviar:', saldoDto);
+  try {
+    const response = await axios.put(`${API_URL}/ModificarSaldo`, saldoDto, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('Saldo modificado:', response.data);
+    return response;
+  } catch (error) {
+    console.error('Error al modificar saldo:', error);
+    throw error;
+  }
+};
 
 const CuentaService = {
   getCuentas,
@@ -73,6 +92,7 @@ const CuentaService = {
   deleteCuenta,
   updateCuenta,
   createCuenta,
+  modificarSaldo,
 };
 
 export default CuentaService;

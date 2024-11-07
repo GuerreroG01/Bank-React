@@ -16,6 +16,9 @@ import FormularioCuentas from "./Components/Cuenta/FormularioCuenta";
 import DetalleCuenta from "./Pages/Cuentas/DetalleAccountPage";
 import Login from "./Components/Auth/Login";
 import SignUp from "./Components/Auth/SignUp";
+import Transferir from './Pages/Transferencia/TransferenciaPage';
+import Transferencias from './Pages/Transferencia/Index';
+
 
 const router = createBrowserRouter([
   {
@@ -79,8 +82,20 @@ const router = createBrowserRouter([
         path: "/auth/registrarse",
         element: <SignUp />,
       },
-    ],
-  },
+      {
+        path: '/cuentas/detalle/:id',
+        element: <DetalleCuenta />
+      },
+      {
+        path: '/transferir',
+        element: <Transferir />
+      },
+      {
+        path: '/transferencias',
+        element: <Transferencias />
+      }
+    ]
+  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

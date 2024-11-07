@@ -1,6 +1,8 @@
 import React from 'react';
 import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
 import { Info } from '@mui/icons-material';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const Tarjetas = ({ tarjetas }) => {
   if (!tarjetas || tarjetas.length === 0) {
@@ -15,6 +17,10 @@ const Tarjetas = ({ tarjetas }) => {
       </Card>
     );
   }
+  const formatDate = (date) => {
+    if (!date) return 'No disponible';
+    return format(new Date(date), 'dd MMMM yyyy', { locale: es });
+  };
 
   return (
     <Grid container spacing={2}>
@@ -32,7 +38,7 @@ const Tarjetas = ({ tarjetas }) => {
                 Marca: {tarjeta.marca_Tarjeta}
               </Typography>
               <Typography variant="body1" sx={{ marginBottom: 0.5, color: 'text.secondary' }}>
-                Vencimiento: {tarjeta.vencimiento}
+                Vencimiento: {formatDate(tarjeta.vencimiento)}
               </Typography>
               <Typography variant="body1" sx={{ marginBottom: 0.5, color: 'text.secondary' }}>
                 CVV: {tarjeta.codigo_Seguridad}

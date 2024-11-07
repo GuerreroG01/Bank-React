@@ -5,74 +5,53 @@ import ClienteService from '../../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton,
-  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
+  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Skeleton,
+  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button,
+  Pagination
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
 import * as XLSX from 'xlsx';
+import FiltroCuentas from './FiltroCuentas';
+import { useTheme } from '@mui/material/styles';
 
-function Row({ cuenta, onEdit, onDelete, onViewDetails, clientes }) {
-  const [open, setOpen] = useState(false);
-
+const Row = ({ cuenta, onEdit, onDelete, onViewDetails, clientes }) => {
+  const { saldo, moneda } = cuenta;
+  const formattedSaldo = moneda === 'NIO'
+    ? `C$${saldo.toFixed(2)}`
+    : moneda === 'USD'
+      ? `$${saldo.toFixed(2)}`
+      : `€${saldo.toFixed(2)}`;
   return (
-    <>
-      <TableRow>
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+    <TableRow>
+      <TableCell>{clientes.find(cliente => cliente.id === cuenta.clienteId)?.nombre || 'N/A'}</TableCell>
+      <TableCell>{cuenta.no_Cuenta}</TableCell>
+      <TableCell>{cuenta.tipo}</TableCell>
+      <TableCell>{formattedSaldo}</TableCell>
+      <TableCell>
+        <Tooltip title="Ver detalles">
+          <IconButton color="info" onClick={() => onViewDetails(cuenta.no_Cuenta)}>
+            <VisibilityIcon />
           </IconButton>
-        </TableCell>
-        <TableCell>{cuenta.tipo}</TableCell>
-        <TableCell>{cuenta.saldo}</TableCell>
-        <TableCell>
-          <Tooltip title="Ver detalles">
-            <IconButton color="info" onClick={() => onViewDetails(cuenta.no_Cuenta)}>
-              <VisibilityIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton color="primary" onClick={() => onEdit(cuenta.no_Cuenta)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton color="secondary" onClick={() => onDelete(cuenta.no_Cuenta)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto, sans-serif' }}>
-                Información Adicional
-              </Typography>
-              <Typography variant="body1">
-                Beneficiario: {cuenta.beneficiarios || 'N/A'}
-              </Typography>
-              <Typography variant="body1">
-                Cliente: {clientes.find(cliente => cliente.id === cuenta.clienteId)?.nombre || 'N/A'}
-              </Typography>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
+        </Tooltip>
+        <Tooltip title="Editar">
+          <IconButton color="primary" onClick={() => onEdit(cuenta.no_Cuenta)}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Eliminar">
+          <IconButton color="secondary" onClick={() => onDelete(cuenta.no_Cuenta)}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
   );
-}
+};
 
 Row.propTypes = {
   cuenta: PropTypes.object.isRequired,
@@ -83,6 +62,7 @@ Row.propTypes = {
 };
 
 const Index_Cuentas = () => {
+  const theme = useTheme();
   const [cuentas, setCuentas] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +71,9 @@ const Index_Cuentas = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedCuentaId, setSelectedCuentaId] = useState(null);
+  const [filters, setFilters] = useState({ moneda: '', tipo: '', minSaldo: '', maxSaldo: '' });
+  const [page, setPage] = useState(1);
+  const [rowsPerPage] = useState(5);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,9 +84,7 @@ const Index_Cuentas = () => {
   const fetchCuentas = async () => {
     try {
       const response = await CuentaService.getCuentas();
-      const cuentasOrdenadas = response.data.sort((a, b) =>
-        a.tipo.localeCompare(b.tipo)
-      );
+      const cuentasOrdenadas = response.data.sort((a, b) => a.tipo.localeCompare(b.tipo));
       setCuentas(cuentasOrdenadas);
       setLoading(false);
     } catch (error) {
@@ -210,6 +191,28 @@ const Index_Cuentas = () => {
     XLSX.writeFile(workbook, 'cuentas.xlsx');
   };
 
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const filteredCuentas = cuentas.filter(cuenta => {
+    const { moneda, tipo, minSaldo, maxSaldo } = filters;
+    const saldo = cuenta.saldo || 0;
+
+    const isMonedaMatch = !moneda || cuenta.moneda === moneda;
+    const isTipoMatch = !tipo || cuenta.tipo === tipo;
+    const isMinSaldoMatch = minSaldo === '' || saldo >= minSaldo;
+    const isMaxSaldoMatch = maxSaldo === '' || saldo <= maxSaldo;
+
+    return isMonedaMatch && isTipoMatch && isMinSaldoMatch && isMaxSaldoMatch;
+  });
+
+  const handleChangePage = (event, value) => {
+    setPage(value);
+  };
+
+  const paginatedCuentas = filteredCuentas.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -229,11 +232,13 @@ const Index_Cuentas = () => {
           </Tooltip>
         </Box>
       </Box>
+      <FiltroCuentas filters={filters} onFilterChange={handleFilterChange} />
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell />
+              <TableCell>Cliente</TableCell>
+              <TableCell>Número de Cuenta</TableCell>
               <TableCell>Tipo de Cuenta</TableCell>
               <TableCell>Saldo</TableCell>
               <TableCell>Acciones</TableCell>
@@ -254,7 +259,7 @@ const Index_Cuentas = () => {
                 </TableRow>
               ))
             ) : (
-              cuentas.map(cuenta => (
+              paginatedCuentas.map(cuenta => (
                 <Row
                   key={cuenta.no_Cuenta}
                   cuenta={cuenta}
@@ -268,6 +273,28 @@ const Index_Cuentas = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box display="flex" justifyContent="flex-end" sx={{ mt: 2 }}>
+        <Pagination
+          count={Math.ceil(filteredCuentas.length / rowsPerPage)}
+          page={page}
+          onChange={handleChangePage}
+          shape="rounded"
+          color="primary"
+          sx={{
+            bgcolor: theme.palette.background.default,
+            '& .MuiPaginationItem-root': {
+              color: 'black',
+            },
+            '& .MuiPaginationItem-ellipsis': {
+              color: 'black',
+            },
+            '& .Mui-selected': {
+              bgcolor: '#81c784',
+              color: 'white',
+            },
+          }}
+        />
+      </Box>
       <Dialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
@@ -298,4 +325,5 @@ const Index_Cuentas = () => {
     </Container>
   );
 };
+
 export default Index_Cuentas;

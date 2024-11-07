@@ -1,78 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TarjetaService from '../../Services/TarjetaService';
+import ClienteService from '../../Services/ClienteService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Collapse, Skeleton,
-  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button
+  TableHead, TableRow, Paper, IconButton, Tooltip, Box, Skeleton,
+  Snackbar, Alert, Dialog, DialogActions, DialogContent, DialogTitle, Button,
+  Pagination
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CloseIcon from '@mui/icons-material/Close';
+import TarjetaFilter from './TarjetaFilter';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-function Row({ tarjeta, onEdit, onDelete, onViewDetails }) {
-  const [open, setOpen] = useState(false);
-
+function Row({ tarjeta, onEdit, onDelete, onViewDetails, cliente }) {
   return (
-    <>
-      <TableRow>
-        <TableCell>
-          <IconButton
-            aria-label="expand row"
-            size="small"
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+    <TableRow>
+      <TableCell>{cliente ? cliente.nombre : 'N/A'}</TableCell>
+      <TableCell>{tarjeta.no_Tarjeta}</TableCell>
+      <TableCell>{tarjeta.no_Cuenta}</TableCell>
+      <TableCell>{tarjeta.vencimiento ? format(new Date(tarjeta.vencimiento), 'dd MMM yyyy', { locale: es }) : 'N/A'}</TableCell>
+      <TableCell>
+        <Tooltip title="Ver detalles">
+          <IconButton color="info" onClick={() => onViewDetails(tarjeta.no_Tarjeta)}>
+            <VisibilityIcon />
           </IconButton>
-        </TableCell>
-        <TableCell>{tarjeta.no_Tarjeta}</TableCell>
-        <TableCell>{tarjeta.no_Cuenta}</TableCell>
-        <TableCell>{tarjeta.limite_Credito}</TableCell>
-        <TableCell>{tarjeta.vencimiento ? format(new Date(tarjeta.vencimiento), 'dd MMM yyyy', { locale: es }) : 'N/A'}</TableCell>
-
-        <TableCell>
-          <Tooltip title="Ver detalles">
-            <IconButton color="info" onClick={() => onViewDetails(tarjeta.id)}>
-              <VisibilityIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton color="primary" onClick={() => onEdit(tarjeta.id)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Eliminar">
-            <IconButton color="secondary" onClick={() => onDelete(tarjeta.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
-          <Collapse in={open} timeout="auto" unmountOnExit>
-            <Box margin={1}>
-              <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto, sans-serif' }}>
-                Información Adicional
-              </Typography>
-              <Typography variant="body1">
-                Tipo de tarjeta: {tarjeta.tipo_Tarjeta}
-              </Typography>
-              <Typography variant="body1">
-                Marca de la tarjeta: {tarjeta.marca_Tarjeta}
-              </Typography>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
-    </>
+        </Tooltip>
+        <Tooltip title="Editar">
+          <IconButton color="primary" onClick={() => onEdit(tarjeta.no_Tarjeta)}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Eliminar">
+          <IconButton color="secondary" onClick={() => onDelete(tarjeta.no_Tarjeta)}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -81,29 +51,64 @@ Row.propTypes = {
   onEdit: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onViewDetails: PropTypes.func.isRequired,
+  cliente: PropTypes.object,
 };
 
 const Index_Tarjetas = () => {
   const [tarjetas, setTarjetas] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [filteredTarjetas, setFilteredTarjetas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedTarjetaId, setSelectedTarjetaId] = useState(null);
+  const [nombreCliente, setNombreCliente] = useState('');
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 5;
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchTarjetas();
+    fetchClientes();
   }, []);
+
+  useEffect(() => {
+    setFilteredTarjetas(tarjetas);
+  }, [tarjetas]);
+
+  const handleFilterChange = useCallback(() => {
+    let filtered = tarjetas;
+
+    if (nombreCliente) {
+      filtered = filtered.filter(tarjeta => {
+        const cliente = clientes.find(c => c.cuentas && c.cuentas.some(cuenta => cuenta.no_Cuenta === tarjeta.no_Cuenta));
+        return cliente && cliente.nombre.toLowerCase().includes(nombreCliente.toLowerCase());
+      });
+    }
+
+    if (fechaInicio) {
+      filtered = filtered.filter(tarjeta => new Date(tarjeta.vencimiento) >= new Date(fechaInicio));
+    }
+
+    if (fechaFin) {
+      filtered = filtered.filter(tarjeta => new Date(tarjeta.vencimiento) <= new Date(fechaFin));
+    }
+
+    setFilteredTarjetas(filtered);
+  }, [tarjetas, clientes, nombreCliente, fechaInicio, fechaFin]);
+
+  useEffect(() => {
+    handleFilterChange();
+  }, [handleFilterChange]);
 
   const fetchTarjetas = async () => {
     try {
       const response = await TarjetaService.getTarjetas();
-      const tarjetasOrdenadas = response.data.sort((a, b) =>
-        a.nombre.localeCompare(b.nombre)
-      );
-      setTarjetas(tarjetasOrdenadas);
+      setTarjetas(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching cards:', error);
@@ -116,12 +121,21 @@ const Index_Tarjetas = () => {
     }
   };
 
-  const handleEdit = (id) => {
-    navigate(`/tarjetas/editar/${id}`);
+  const fetchClientes = async () => {
+    try {
+      const response = await ClienteService.getClientes();
+      setClientes(response.data);
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+    }
   };
 
-  const handleDelete = (id) => {
-    setSelectedTarjetaId(id);
+  const handleEdit = (no_Tarjeta) => {
+    navigate(`/tarjetas/editar/${no_Tarjeta}`);
+  };
+
+  const handleDelete = (no_Tarjeta) => {
+    setSelectedTarjetaId(no_Tarjeta);
     setOpenDialog(true);
   };
 
@@ -153,6 +167,12 @@ const Index_Tarjetas = () => {
     setOpenSnackbar(false);
   };
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const paginatedTarjetas = filteredTarjetas.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -165,14 +185,21 @@ const Index_Tarjetas = () => {
           </IconButton>
         </Tooltip>
       </Box>
+      <TarjetaFilter 
+        nombreCliente={nombreCliente}
+        setNombreCliente={setNombreCliente}
+        fechaInicio={fechaInicio}
+        setFechaInicio={setFechaInicio}
+        fechaFin={fechaFin}
+        setFechaFin={setFechaFin}
+      />
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell />
+              <TableCell>Cliente</TableCell>
               <TableCell>No. Tarjeta</TableCell>
               <TableCell>No. Cuenta</TableCell>
-              <TableCell>No. Limite de credito</TableCell>
               <TableCell>Fecha de vencimiento</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
@@ -181,30 +208,53 @@ const Index_Tarjetas = () => {
             {loading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
-                  <TableCell>
-                    <Skeleton variant="rectangular" width={40} height={40} />
-                  </TableCell>
                   <TableCell><Skeleton /></TableCell>
                   <TableCell><Skeleton /></TableCell>
-                  <TableCell>
-                    <Skeleton variant="rectangular" width={150} height={40} />
-                  </TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
                 </TableRow>
               ))
             ) : (
-              tarjetas.map(tarjeta => (
-                <Row
-                  key={tarjeta.id}
-                  tarjeta={tarjeta}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onViewDetails={handleViewDetails}
-                />
-              ))
+              paginatedTarjetas.map(tarjeta => {
+                const cliente = clientes.find(c => c.cuentas && c.cuentas.some(cuenta => cuenta.no_Cuenta === tarjeta.no_Cuenta));
+                return (
+                  <Row
+                    key={tarjeta.no_Tarjeta}
+                    tarjeta={tarjeta}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onViewDetails={handleViewDetails}
+                    cliente={cliente}
+                  />
+                );
+              })
             )}
           </TableBody>
         </Table>
       </TableContainer>
+      <Box display="flex" justifyContent="flex-end" sx={{ mt: 2 }}>
+        <Pagination
+          count={Math.ceil(filteredTarjetas.length / rowsPerPage)}
+          page={page}
+          onChange={handleChangePage}
+          shape="rounded"
+          color="primary"
+          sx={{
+            bgcolor: 'inherit',
+            '& .MuiPaginationItem-root': {
+              color: 'black',
+            },
+            '& .MuiPaginationItem-ellipsis': {
+              color: 'black',
+            },
+            '& .Mui-selected': {
+              bgcolor: '#81c784',
+              color: 'white',
+            },
+          }}
+        />
+      </Box>
       <Dialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}

@@ -2,10 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CuentaService from '../../Services/CuentaService';
 import ClienteService from '../../Services/ClienteService';
-import { Box, Typography, Button, Alert, AlertTitle, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  Alert,
+  AlertTitle,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Skeleton,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const DetallesCuenta = () => {
   const { id } = useParams();
@@ -16,6 +29,7 @@ const DetallesCuenta = () => {
   const [monedaSeleccionada, setMonedaSeleccionada] = useState('');
   const [saldoOriginal, setSaldoOriginal] = useState(0);
   const [monedaOriginal, setMonedaOriginal] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchDetalles = async () => {
@@ -29,6 +43,10 @@ const DetallesCuenta = () => {
         setMonedaSeleccionada(cuentaResponse.data.moneda);
         setSaldoOriginal(cuentaResponse.data.saldo);
         setMonedaOriginal(cuentaResponse.data.moneda);
+
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 100);
       } catch (error) {
         console.error('Error fetching cuenta o cliente:', error);
         setMensajeError('Hubo un error al cargar los detalles de la cuenta. Por favor, inténtalo de nuevo.');
@@ -51,6 +69,10 @@ const DetallesCuenta = () => {
       }
     }
   };
+  const formatDate = (date) => {
+    if (!date) return 'No disponible';
+    return format(new Date(date), 'dd MMMM yyyy', { locale: es });
+  };
 
   if (mensajeError) {
     return (
@@ -61,8 +83,18 @@ const DetallesCuenta = () => {
     );
   }
 
-  if (!cuenta || !cliente) {
-    return <Typography>Cargando...</Typography>;
+  if (isLoading || !cuenta || !cliente) {
+    return (
+      <Box sx={{ padding: 3, marginTop: 9.4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+            <Skeleton variant="circular" width={100} height={100} sx={{ marginTop: 2, marginLeft: 50 }} />
+            <Skeleton variant="rectangular" width="32.5%" height={135} />
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 3 }}>
+            <Skeleton variant="rectangular" width="41%" height={167} />
+        </Box>
+    </Box>
+    );
   }
 
   const obtenerNombreMoneda = (moneda) => {
@@ -145,7 +177,7 @@ const DetallesCuenta = () => {
           backgroundColor: '#f9f9f9',
         }}
       >
-        {cliente.foto && (
+        {cliente.foto ? (
           <img
             src={`${process.env.REACT_APP_API_URL}/Images/${cliente.foto}`}
             alt={`Foto de ${cliente.nombre}`}
@@ -158,14 +190,25 @@ const DetallesCuenta = () => {
               boxShadow: 2,
             }}
           />
+        ) : (
+          <Skeleton variant="circular" width={100} height={100} sx={{ marginRight: 2 }} />
         )}
         <Box>
-          <Typography variant="h6" sx={{ marginBottom: 0.5 }}>
-            Cliente: {cliente.nombre}
-          </Typography>
-          <Typography variant="body1">
-            Teléfono: {cliente.telefono || 'N/A'}
-          </Typography>
+          {cliente ? (
+            <>
+              <Typography variant="h6" sx={{ marginBottom: 0.5 }}>
+                Cliente: {cliente.nombre}
+              </Typography>
+              <Typography variant="body1">
+                Teléfono: {cliente.telefono || 'N/A'}
+              </Typography>
+            </>
+          ) : (
+            <>
+              <Skeleton variant="text" width="80%" height={24} />
+              <Skeleton variant="text" width="60%" height={24} />
+            </>
+          )}
         </Box>
       </Box>
 
@@ -173,12 +216,23 @@ const DetallesCuenta = () => {
         <Typography variant="h6" gutterBottom>
           Información de la Cuenta
         </Typography>
-        <Typography variant="body1">Tipo de Cuenta: {cuenta.tipo}</Typography>
-        <Typography variant="body1">
-          Saldo: {monedaSeleccionada === 'NIO' ? `C$${saldoConvertido.toFixed(2)}` : monedaSeleccionada === 'USD' ? `$${saldoConvertido.toFixed(2)}` : `€${saldoConvertido.toFixed(2)}`}
-        </Typography>
-        <Typography variant="body1">Moneda: {obtenerNombreMoneda(cuenta.moneda)}</Typography>
-        <Typography variant="body1">Beneficiario: {cuenta.beneficiarios || 'N/A'}</Typography>
+        {cuenta ? (
+          <>
+            <Typography variant="body1">Tipo de Cuenta: {cuenta.tipo}</Typography>
+            <Typography variant="body1">
+              Saldo: {monedaSeleccionada === 'NIO' ? `C$${saldoConvertido.toFixed(2)}` : monedaSeleccionada === 'USD' ? `$${saldoConvertido.toFixed(2)}` : `€${saldoConvertido.toFixed(2)}`}
+            </Typography>
+            <Typography variant="body1">Moneda: {obtenerNombreMoneda(cuenta.moneda)}</Typography>
+            <Typography variant="body1">Beneficiario: {cuenta.beneficiarios || 'N/A'}</Typography>
+            <Typography variant="body1">Apertura de la cuenta: {formatDate(cuenta.aperturacuenta)}</Typography>
+          </>
+        ) : (
+          <>
+            <Skeleton variant="text" width="80%" height={24} />
+            <Skeleton variant="text" width="60%" height={24} />
+            <Skeleton variant="text" width="50%" height={24} />
+          </>
+        )}
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
@@ -212,4 +266,5 @@ const DetallesCuenta = () => {
     </Box>
   );
 };
+
 export default DetallesCuenta;
