@@ -20,6 +20,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import HomeIcon from '@mui/icons-material/Home';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
+import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
 
 import BankLogo from '../assets/Images/Bank_Icon2.png';
@@ -126,12 +127,18 @@ export default function MiniDrawer() {
           >
             <MenuIcon />
           </IconButton>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <img src={BankLogo} alt="BancoNet Logo" style={{ width: 40, height: 40, marginRight: 10 }} />
             <Typography variant="h6" noWrap component="div" sx={{ fontFamily: 'Roboto' }}>
               BancoNet
             </Typography>
           </Box>
+          <Button color="inherit" onClick={() => handleNavigation('/auth/iniciar_sesion')}>
+            Iniciar sesión
+          </Button>
+          <Button color="inherit" onClick={() => handleNavigation('/auth/registrarse')}>
+            Registrarse
+          </Button>
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>

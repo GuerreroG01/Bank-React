@@ -108,6 +108,11 @@ const Index_Tarjetas = () => {
     } catch (error) {
       console.error('Error fetching cards:', error);
       setLoading(false);
+      if(error.response.status === 401) {
+        setTimeout(() => {
+          navigate('/auth/iniciar_sesion/no_token');
+        }, 500);
+      }
     }
   };
 

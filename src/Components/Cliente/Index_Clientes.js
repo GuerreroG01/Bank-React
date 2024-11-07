@@ -102,8 +102,13 @@ const Index_Clientes = () => {
       setClientes(clientesOrdenados);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching clients:', error);
       setLoading(false);
+      console.error('Error fetching clients:', error);
+      if(error.response.status === 401) {
+        setTimeout(() => {
+          navigate('/auth/iniciar_sesion/no_token');
+        }, 500);
+      }
     }
   };
 
