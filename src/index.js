@@ -16,9 +16,9 @@ import FormularioCuentas from "./Components/Cuenta/FormularioCuenta";
 import DetalleCuenta from "./Pages/Cuentas/DetalleAccountPage";
 import Login from "./Components/Auth/Login";
 import SignUp from "./Components/Auth/SignUp";
+import PrivateRoute from './Components/Auth/PrivateRoute';
 import Transferir from './Pages/Transferencia/TransferenciaPage';
 import Transferencias from './Pages/Transferencia/Index';
-
 
 const router = createBrowserRouter([
   {
@@ -28,51 +28,51 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/clientes",
-        element: <IndexClientes />,
+        element: <PrivateRoute element={<IndexClientes />} />,
       },
       {
         path: "/clientes/formulario",
-        element: <FormularioCliente />,
+        element: <PrivateRoute element={<FormularioCliente />} />,
       },
       {
         path: "/clientes/editar/:id",
-        element: <FormularioCliente />,
+        element: <PrivateRoute element={<FormularioCliente />} />,
       },
       {
         path: "/clientes/detalle/:id",
-        element: <DetalleCliente />,
+        element: <PrivateRoute element={<DetalleCliente />} />,
       },
       {
         path: "/tarjetas",
-        element: <IndexTarjetas />,
+        element: <PrivateRoute element={<IndexTarjetas />} />,
       },
       {
         path: "/tarjetas/formulario",
-        element: <FormularioTarjeta />,
+        element: <PrivateRoute element={<FormularioTarjeta />} />,
       },
       {
         path: "/tarjetas/editar/:id",
-        element: <FormularioTarjeta />,
+        element: <PrivateRoute element={<FormularioTarjeta />} />,
       },
       {
         path: "/tarjetas/detalle/:id",
-        element: <DetalleTarjeta />,
+        element: <PrivateRoute element={<DetalleTarjeta />} />,
       },
       {
         path: "/cuentas",
-        element: <IndexCuentas />,
+        element: <PrivateRoute element={<IndexCuentas />} />,
       },
       {
         path: "/cuentas/nueva",
-        element: <FormularioCuentas />,
+        element: <PrivateRoute element={<FormularioCuentas />} />,
       },
       {
         path: "/cuentas/editar/:id",
-        element: <FormularioCuentas />,
+        element: <PrivateRoute element={<FormularioCuentas />} />,
       },
       {
         path: "/cuentas/detalle/:id",
-        element: <DetalleCuenta />,
+        element: <PrivateRoute element={<DetalleCuenta />} />,
       },
       {
         path: "/auth/iniciar_sesion/:token?",
@@ -83,16 +83,12 @@ const router = createBrowserRouter([
         element: <SignUp />,
       },
       {
-        path: '/cuentas/detalle/:id',
-        element: <DetalleCuenta />
-      },
-      {
         path: '/transferir',
-        element: <Transferir />
+        element: <PrivateRoute element={<Transferir />} />,
       },
       {
         path: '/transferencias',
-        element: <Transferencias />
+        element: <PrivateRoute element={<Transferencias />} />,
       }
     ]
   }

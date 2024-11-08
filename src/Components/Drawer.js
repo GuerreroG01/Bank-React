@@ -159,9 +159,14 @@ export default function MiniDrawer() {
               </Button>
             </>
           ) : (
-            <Button color="inherit" onClick={handleLogout}>
-              Cerrar sesión
-            </Button>
+            <>
+              <Typography variant="body1" sx={{ color: 'white', marginRight: 2 }}>
+                Bienvenido!!!
+              </Typography>
+              <Button color="inherit" onClick={handleLogout}>
+                Cerrar sesión
+              </Button>
+            </>
           )}
         </Toolbar>
       </AppBar>
