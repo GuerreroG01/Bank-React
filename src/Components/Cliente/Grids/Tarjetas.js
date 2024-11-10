@@ -2,7 +2,7 @@ import React from 'react';
 import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
 import { Info } from '@mui/icons-material';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es } from 'date-fns/locale/es';
 
 const Tarjetas = ({ tarjetas }) => {
   if (!tarjetas || tarjetas.length === 0) {

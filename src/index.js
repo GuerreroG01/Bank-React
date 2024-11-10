@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import ErrorPage from "./Pages/ErrorPage";
+import Dashboard from './Pages/Dashboard/DashboardPage';
 import IndexClientes from "./Components/Cliente/Index_Clientes";
 import FormularioCliente from "./Components/Cliente/FormularioCliente";
 import DetalleCliente from "./Components/Cliente/DetalleCliente";
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
     element: <App />,
     errorElement: <ErrorPage />,
     children: [
+      {
+        path: "/",
+        element: <PrivateRoute element={<Dashboard />} />,
+      },
       {
         path: "/clientes",
         element: <PrivateRoute element={<IndexClientes />} />,

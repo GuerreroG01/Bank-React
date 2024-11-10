@@ -90,7 +90,7 @@ const Login = () => {
         </Typography>
         
         {token === "no_token" && (
-          <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
+          <Alert severity="info" sx={{ width: "100%", mb: 2 }}>
             Debes iniciar sesión para acceder a esa página
           </Alert>
         )}

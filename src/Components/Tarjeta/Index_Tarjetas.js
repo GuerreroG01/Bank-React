@@ -16,7 +16,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import TarjetaFilter from './TarjetaFilter';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es } from 'date-fns/locale/es';
 
 function Row({ tarjeta, onEdit, onDelete, onViewDetails, cliente }) {
   return (
