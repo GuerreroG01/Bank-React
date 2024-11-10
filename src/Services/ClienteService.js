@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = `${process.env.REACT_APP_API_URL}/api/Clientes`;
 
-// Add a request interceptor
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -13,7 +12,6 @@ axios.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Add a response interceptor
 axios.interceptors.response.use(response => {
   return response;
 }, error => {
@@ -81,4 +79,5 @@ const ClienteService = {
   updateCliente,
   createCliente
 };
+
 export default ClienteService;
