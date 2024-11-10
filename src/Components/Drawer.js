@@ -23,8 +23,8 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import Button from '@mui/material/Button';
 import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined';
 import ClearAllOutlinedIcon from '@mui/icons-material/ClearAllOutlined';
+import BackupIcon from '@mui/icons-material/Backup';
 import { useNavigate } from 'react-router-dom';
-
 import BankLogo from '../assets/Images/Bank_Icon2.png';
 
 const drawerWidth = 240;
@@ -302,6 +302,27 @@ export default function MiniDrawer() {
                 <ClearAllOutlinedIcon />
               </ListItemIcon>
               <ListItemText primary="Transferencias" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem key="Backup" disablePadding sx={{ display: 'block' }}>
+            <ListItemButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? 'initial' : 'center',
+                px: 2.5,
+              }}
+              onClick={() => handleNavigation('/backup')}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : 'auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <BackupIcon />
+              </ListItemIcon>
+              <ListItemText primary="Backup" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
           </ListItem>
         </List>

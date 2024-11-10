@@ -18,6 +18,7 @@ import Login from "./Components/Auth/Login";
 import SignUp from "./Components/Auth/SignUp";
 import Transferir from './Pages/Transferencia/TransferenciaPage';
 import Transferencias from './Pages/Transferencia/Index';
+import Backup from './Pages/Backup/Index';
 
 
 const router = createBrowserRouter([
@@ -93,6 +94,10 @@ const router = createBrowserRouter([
       {
         path: '/transferencias',
         element: <Transferencias />
+      },
+      {
+        path: '/backup',
+        element: <Backup />
       }
     ]
   }
