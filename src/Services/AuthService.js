@@ -21,7 +21,7 @@ axios.interceptors.response.use(response => {
   return Promise.reject(error);
 });
 
-const register = async (email, password) => {
+const register = async (email, password ) => {
   try {
     const response = await axios.post(
       API_URL + "register",
@@ -39,6 +39,10 @@ const register = async (email, password) => {
     return response;
   } catch (error) {
     console.error("Error creando usuario:", error);
+    if (error.response) {
+      console.error("Detalles completos del error:", error.response);
+      console.error("Detalles del error:", error.response.data);
+    }
     throw error;
   }
 };
