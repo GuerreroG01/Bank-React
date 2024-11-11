@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ClienteService from '../../Services/ClienteService';
+import ReportService from '../../Services/ReportService';
 import PropTypes from 'prop-types';
 import {
   Container, Grid, Typography, Table, TableBody, TableCell, TableContainer,
@@ -18,7 +19,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
-import * as XLSX from 'xlsx';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 
 function Row({ cliente, onEdit, onDelete, onViewDetails }) {
@@ -150,57 +150,12 @@ const Index_Clientes = () => {
   const handleSnackbarClose = () => {
     setOpenSnackbar(false);
   };
-
-  const exportToExcel = () => {
-    const filteredClientes = clientes.map(({ foto, nacimiento, ...rest }) => ({
-      ...rest,
-      nacimiento: new Date(nacimiento)
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(filteredClientes);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Clientes');
-
-    const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
-    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-      if (!worksheet[cellAddress]) continue;
-      worksheet[cellAddress].s = {
-        font: {
-          bold: true,
-          color: { rgb: "FFFFFF" }
-        },
-        fill: {
-          fgColor: { rgb: "4F81BD" }
-        },
-        alignment: {
-          horizontal: "center"
-        }
-      };
+  const handleExportToExcel = async () => {
+    try {
+      await ReportService.exportarClientes();
+    } catch (error) {
+      console.error('Error exportando reporte:', error);
     }
-
-    for (let row = 0; row <= filteredClientes.length; row++) {
-      for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-        if (!worksheet[cellAddress]) continue;
-        worksheet[cellAddress].s = {
-          alignment: {
-            horizontal: "center"
-          }
-        };
-      }
-    }
-
-    const columnWidths = [
-      { wch: 5 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 10 }
-    ];
-    worksheet['!cols'] = columnWidths;
-
-    XLSX.writeFile(workbook, 'clientes.xlsx');
   };
 
   const filteredClientes = clientes.filter(cliente => cliente.nombre.toLowerCase().includes(filter.toLowerCase()));
@@ -224,7 +179,7 @@ const Index_Clientes = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Exportar a Excel">
-            <IconButton color="success" onClick={exportToExcel}>
+            <IconButton color="success" onClick={handleExportToExcel}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>
