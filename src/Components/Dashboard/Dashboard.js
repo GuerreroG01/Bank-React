@@ -67,7 +67,7 @@ const Dashboard = () => {
   }
 
   return (
-    <Box sx={{ padding: '2rem', marginLeft: '80px', marginTop: -8 }}>
+    <Box sx={{ padding: '2rem', marginLeft: '80px', marginTop: -8 }}> 
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
         Inicio
       </Typography>

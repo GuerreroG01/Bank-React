@@ -10,10 +10,15 @@ import {
   useTheme,
   useMediaQuery,
   Grid,
-  Avatar
+  Avatar,
+  CircularProgress,
+  IconButton,
+  InputAdornment
 } from "@mui/material";
 import { useNavigate, useParams } from 'react-router-dom';
 import AuthService from "../../Services/AuthService";
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -24,6 +29,8 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [alertMessage, setAlertMessage] = useState(null);
   const [alertSeverity, setAlertSeverity] = useState("error");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -41,12 +48,15 @@ const Login = () => {
     e.preventDefault();
     setErrors({});
     setSuccessMessage("");
+    setLoading(true);
 
     if (!email) {
       setErrors({ ...errors, email: "El email es obligatorio" });
+      setLoading(false);
       return;
     } else if (!password) {
       setErrors({ ...errors, password: "La contraseña es obligatoria" });
+      setLoading(false);
       return;
     }
 
@@ -61,6 +71,8 @@ const Login = () => {
     } catch (error) {
       setAlertMessage("Error al iniciar sesión");
       setAlertSeverity("error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -129,7 +141,7 @@ const Login = () => {
             required
             name="password"
             label="Contraseña"
-            type="password"
+            type={showPassword ? "text" : "password"}
             id="password"
             autoComplete="current-password"
             fullWidth
@@ -138,6 +150,18 @@ const Login = () => {
             error={!!errors.password}
             helperText={errors.password}
             sx={{ mb: 3 }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
           />
           
           <Button
@@ -151,8 +175,9 @@ const Login = () => {
               mb: 2,
               borderRadius: 2
             }}
+            disabled={loading}
           >
-            Iniciar Sesión
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Iniciar Sesión"}
           </Button>
         </Box>
         
@@ -167,5 +192,4 @@ const Login = () => {
     </Container>
   );
 };
-
 export default Login;

@@ -21,6 +21,7 @@ import PrivateRoute from './Components/Auth/PrivateRoute';
 import Transferir from './Pages/Transferencia/TransferenciaPage';
 import Transferencias from './Pages/Transferencia/Index';
 import Backup from './Pages/Backup/Index';
+import Report from './Pages/Report/ReportPage';
 
 const router = createBrowserRouter([
   {
@@ -99,6 +100,10 @@ const router = createBrowserRouter([
       {
         path: '/backup',
         element: <Backup />
+      },
+      {
+        path: '/reports',
+        element: <Report />
       }
     ]
   }

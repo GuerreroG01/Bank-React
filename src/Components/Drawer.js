@@ -24,6 +24,7 @@ import Button from '@mui/material/Button';
 import SwapHorizOutlinedIcon from '@mui/icons-material/SwapHorizOutlined';
 import ClearAllOutlinedIcon from '@mui/icons-material/ClearAllOutlined';
 import BackupIcon from '@mui/icons-material/Backup';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 import { useNavigate } from 'react-router-dom';
 import BankLogo from '../assets/Images/Bank_Icon2.png';
 
@@ -328,6 +329,27 @@ export default function MiniDrawer() {
                 <BackupIcon />
               </ListItemIcon>
               <ListItemText primary="Backup" sx={{ opacity: open ? 1 : 0 }} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem key="Reports" disablePadding sx={{ display: 'block' }}>
+            <ListItemButton
+              sx={{
+                minHeight: 48,
+                justifyContent: open ? 'initial' : 'center',
+                px: 2.5,
+              }}
+              onClick={() => handleNavigation('/reports')}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 0,
+                  mr: open ? 3 : 'auto',
+                  justifyContent: 'center',
+                }}
+              >
+                <SummarizeIcon />
+              </ListItemIcon>
+              <ListItemText primary="Reportes" sx={{ opacity: open ? 1 : 0 }} />
             </ListItemButton>
           </ListItem>
         </List>

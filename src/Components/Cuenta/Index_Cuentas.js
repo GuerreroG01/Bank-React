@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CuentaService from '../../Services/CuentaService';
 import ClienteService from '../../Services/ClienteService';
+import ReportService from '../../Services/ReportService';
 import PropTypes from 'prop-types';
 import {
   Container, Typography, Table, TableBody, TableCell, TableContainer,
@@ -15,7 +16,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
-import * as XLSX from 'xlsx';
 import FiltroCuentas from './FiltroCuentas';
 import { useTheme } from '@mui/material/styles';
 
@@ -139,58 +139,6 @@ const Index_Cuentas = () => {
     setOpenSnackbar(false);
   };
 
-  const exportToExcel = () => {
-    const filteredCuentas = cuentas.map(({ clienteId, ...rest }) => ({
-      ...rest,
-      clienteId: clienteId
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(filteredCuentas);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cuentas');
-
-    const headerRange = XLSX.utils.decode_range(worksheet['!ref']);
-    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-      if (!worksheet[cellAddress]) continue;
-      worksheet[cellAddress].s = {
-        font: {
-          bold: true,
-          color: { rgb: "FFFFFF" }
-        },
-        fill: {
-          fgColor: { rgb: "4F81BD" }
-        },
-        alignment: {
-          horizontal: "center"
-        }
-      };
-    }
-
-    for (let row = 0; row <= filteredCuentas.length; row++) {
-      for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-        if (!worksheet[cellAddress]) continue;
-        worksheet[cellAddress].s = {
-          alignment: {
-            horizontal: "center"
-          }
-        };
-      }
-    }
-
-    const columnWidths = [
-      { wch: 5 },
-      { wch: 30 },
-      { wch: 15 },
-      { wch: 20 },
-      { wch: 10 }
-    ];
-    worksheet['!cols'] = columnWidths;
-
-    XLSX.writeFile(workbook, 'cuentas.xlsx');
-  };
-
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
   };
@@ -213,6 +161,15 @@ const Index_Cuentas = () => {
 
   const paginatedCuentas = filteredCuentas.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
+  const handleExportRanking = async () => {
+    try {
+      await ReportService.exportarRankingClientesPorSaldo();
+      console.log('Reporte de ranking exportado con éxito');
+    } catch (error) {
+      console.error('Error al exportar el reporte', error);
+    }
+  };
+
   return (
     <Container>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -225,8 +182,8 @@ const Index_Cuentas = () => {
               <AddIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Exportar a Excel">
-            <IconButton color="success" onClick={exportToExcel}>
+          <Tooltip title="Ranking De Cuentas Por Saldo">
+            <IconButton color="success" onClick={handleExportRanking}>
               <DownloadIcon />
             </IconButton>
           </Tooltip>

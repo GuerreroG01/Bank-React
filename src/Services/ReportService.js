@@ -40,9 +40,29 @@ const exportarClientes = async () => {
     throw error;
   }
 };
+const exportarRankingClientesPorSaldo = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/clientes/ranking-saldo/exportar-excel`, {
+      responseType: 'blob',
+    });
+
+    const fechaActual = new Date().toISOString().split('T')[0].replace(/-/g, '');
+    const nombreArchivo = `RankingClientes_Saldo_${fechaActual}.xlsx`;
+
+    const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = nombreArchivo; 
+    link.click();
+  } catch (error) {
+    console.error('Error exportando ranking de clientes:', error);
+    throw error;
+  }
+};
 
 const ReportService = {
   exportarClientes,
+  exportarRankingClientesPorSaldo
 };
 
 export default ReportService;
