@@ -128,7 +128,7 @@ export default function MiniDrawer() {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex' }} id="drawer-main-container">
       <CssBaseline />
       <AppBar position="fixed" open={open}>
         <Toolbar>

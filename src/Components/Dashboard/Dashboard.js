@@ -52,7 +52,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }} id="loading-spinner">
         <CircularProgress />
       </Grid>
     );
@@ -60,7 +60,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }}>
+      <Grid container justifyContent="center" alignItems="center" style={{ minHeight: '100vh' }} id="error-alert">
         <Alert severity="error">{error}</Alert>
       </Grid>
     );
@@ -68,12 +68,12 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ padding: '2rem', marginLeft: '80px', marginTop: -8 }}> 
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }} id="inicio-label">
         Inicio
       </Typography>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={3} id="dashboard-cards">
+        <Grid item xs={12} sm={6} md={3} id="clientes-card">
           <Card 
             sx={{ 
               backgroundColor: blue[50], 
@@ -98,7 +98,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} id="cuentas-card">
           <Card 
             sx={{ 
               backgroundColor: amber[50], 
@@ -123,7 +123,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} id="tarjetas-card">
           <Card 
             sx={{ 
               backgroundColor: red[50], 
@@ -148,7 +148,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={12} sm={6} md={3} id="transferencias-card">
           <Card 
             sx={{ 
               backgroundColor: green[100], 
@@ -173,7 +173,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item xs={12} sm={6} md={6} id="saldo-chart">
           <Card sx={{ backgroundColor: '#f5f5f5', boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
               <SaldoPorMonedaChart saldoPorMoneda={saldoPorMoneda} />
@@ -181,7 +181,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={6}>
+        <Grid item xs={12} sm={6} md={6} id="transferencias-chart">
           <Card sx={{ backgroundColor: '#f5f5f5', boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
               <TransferenciasPorMoneda transferenciasPorMoneda={transferenciasPorMoneda} />

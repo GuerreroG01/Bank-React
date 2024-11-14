@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = `${process.env.REACT_APP_API_URL}/api/Report`;
+const API_URL_PDF = `${process.env.REACT_APP_API_URL}/api/ReportPDF`;
 
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
@@ -40,6 +41,7 @@ const exportarClientes = async () => {
     throw error;
   }
 };
+
 const exportarRankingClientesPorSaldo = async () => {
   try {
     const response = await axios.get(`${API_URL}/clientes/ranking-saldo/exportar-excel`, {
@@ -59,10 +61,34 @@ const exportarRankingClientesPorSaldo = async () => {
     throw error;
   }
 };
+const exportarReportePDF = async () => {
+  try {
+    const response = await axios.get(`${API_URL_PDF}/reporte-pdf`, {
+      responseType: 'blob',
+    });
+
+    if (response.status === 200) {
+      const fechaActual = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      const nombreArchivo = `ReporteClientes_${fechaActual}.pdf`;
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = nombreArchivo;
+      link.click();
+    } else {
+      console.error('Error al generar el reporte:', response.status);
+    }
+  } catch (error) {
+    console.error('Error exportando reporte PDF:', error);
+    throw error;
+  }
+};
 
 const ReportService = {
   exportarClientes,
-  exportarRankingClientesPorSaldo
+  exportarRankingClientesPorSaldo,
+  exportarReportePDF,
 };
 
 export default ReportService;

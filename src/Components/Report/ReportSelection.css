@@ -1,0 +1,30 @@
+@keyframes fillEffect {
+    0% {
+      height: 0;
+    }
+    100% {
+      height: 100%;
+    }
+  }
+  
+  .linearProgressFill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 255, 0.5);
+    border-radius: 2px;
+    animation: fillEffect 1s ease-out;
+  }
+  
+  #pdf-report .linearProgressFill {
+    animation-duration: 20s;
+  }
+  
+  #clientes-excel-report .linearProgressFill {
+    animation-duration: 1s;
+  }
+  
+  #ranking-excel-report .linearProgressFill {
+    animation-duration: 1s;
+  }  
